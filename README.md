@@ -1,1 +1,1 @@
-# lok
+# foo-editor
