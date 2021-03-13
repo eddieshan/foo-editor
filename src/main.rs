@@ -8,7 +8,7 @@ mod text;
 mod theme;
 mod editor;
 
-use std::io::{Result, Error};
+use std::io::Result;
 
 use crate::win::term;
 use crate::editor::Editor;
@@ -18,7 +18,5 @@ fn main() -> Result<()> {
 
     let mut editor = Editor::new(state);
 
-    editor.run();
-
-    Ok(())
+    editor.run()
 }

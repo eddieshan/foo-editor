@@ -1,19 +1,18 @@
 use std::convert::{TryFrom};
 use std::io;
-use std::io::{Stdin, Stdout, Result, Error, Read, Write};
+use std::io::{Stdout, Result, Read, Write};
 
 use crate::{ansi, text, theme};
-use crate::win::{term, bindings};
-use crate::win::term::TermState;
+use crate::win::term::{TermInfo, Term};
 
 pub struct Editor {
-    term_state: TermState
+    term: Term
 }
 
 impl Editor {
 
-    pub fn new(term_state: TermState) -> Self {
-        Editor { term_state: term_state }
+    pub fn new(term: Term) -> Self {
+        Editor { term: term }
     }
 
     fn set_col(col: i16, stdout: &mut Stdout) {
@@ -28,14 +27,14 @@ impl Editor {
         stdout.write(ansi::POS);
     }
 
-    fn gutter(&mut self, stdout: &mut Stdout) -> Result<()> {
+    fn gutter(&mut self, stdout: &mut Stdout, info: &TermInfo) -> Result<()> {
 
         stdout.write(ansi::SET_BG)?;
         stdout.write(theme::GUTTER_BACKGROUND)?;
         stdout.write(ansi::SET_FG)?;
         stdout.write(theme::GUTTER_FOREGROUND)?;
 
-        let height = self.term_state.buffer.dwMaximumWindowSize.Y;
+        let height = info.screen_size.height;
 
         for i in 1..height {
 
@@ -48,7 +47,7 @@ impl Editor {
                 stdout.write(theme::GUTTER_FOREGROUND)?;
                 stdout.write(ansi::UNDERLINE)?;
 
-                for i in 5..=self.term_state.buffer.dwMaximumWindowSize.X {
+                for _ in 5..=info.screen_size.width {
                     stdout.write(text::WHITESPACE)?;
                 }
             } else {
@@ -63,17 +62,17 @@ impl Editor {
         Ok(())
     }
 
-    fn status_bar(&self, stdout: &mut Stdout) -> Result<()> {
+    fn status_bar(&self, stdout: &mut Stdout, info: &TermInfo) -> Result<()> {
 
         stdout.write(ansi::SET_FG)?;
         stdout.write(theme::STATUS_FOREGROUND)?;
 
         let status = format!("BUFFER [{}, {}] | SCREEN [{}, {}]", 
-                        self.term_state.buffer.dwSize.X, self.term_state.buffer.dwSize.Y, 
-                        self.term_state.buffer.dwMaximumWindowSize.X, self.term_state.buffer.dwMaximumWindowSize.Y);
+                        info.buffer_size.width, info.buffer_size.height, 
+                        info.screen_size.width, info.screen_size.height);
 
-        let last_row = u16::try_from(self.term_state.buffer.dwMaximumWindowSize.Y).unwrap();
-        let last_col = u16::try_from(self.term_state.buffer.dwMaximumWindowSize.X).unwrap();
+        let last_row = info.screen_size.height;
+        let last_col = info.screen_size.width;
 
         let start_col = last_col - u16::try_from(status.len()).unwrap();
 
@@ -94,8 +93,10 @@ impl Editor {
         stdout.write(ansi::CLEAR)?;
         stdout.write(ansi::HOME)?;
 
-        self.gutter(&mut stdout);
-        self.status_bar(&mut stdout);
+        let term_info = self.term.info()?;
+
+        self.gutter(&mut stdout, &term_info);
+        self.status_bar(&mut stdout, &term_info);
         stdout.write(theme::HOME)?;
 
         stdout.flush()?;
@@ -134,6 +135,6 @@ impl Drop for Editor {
         stdout.write(ansi::RESET);
         stdout.write(ansi::CLEAR);
         stdout.flush();
-        self.term_state.restore();
+        self.term.restore();
     }
 }
