@@ -73,3 +73,41 @@ const VT_INPUT_MASK: DWORD = bindings::ENABLE_VIRTUAL_TERMINAL_INPUT |
 
 const CONSOLE_IN: &str = "CONIN$\0";
 const CONSOLE_OUT: &str = "CONOUT$\0";
+
+fn raw_vt_input_mode(current_mode: DWORD) -> DWORD {
+    (current_mode & !RAW_INPUT_MASK) | VT_INPUT_MASK
+}
+
+fn ansi_output_mode(current_mode: DWORD) -> DWORD {
+    current_mode | bindings::ENABLE_VIRTUAL_TERMINAL_PROCESSING
+}
+
+fn buffer_info(handle: HANDLE) -> Result<CONSOLE_SCREEN_BUFFER_INFO> {
+    let mut buffer_info = CONSOLE_SCREEN_BUFFER_INFO  { 
+        dwSize: COORD { X: 0, Y: 0 },
+        dwCursorPosition: COORD { X: 0, Y: 0 },
+        wAttributes: 0,
+        srWindow: SMALL_RECT { Left: 0, Top: 0, Right: 0, Bottom: 0},
+        dwMaximumWindowSize: COORD { X: 0, Y: 0 }
+    };
+
+    unsafe {
+        if bindings::GetConsoleScreenBufferInfo(handle, &mut buffer_info) == 0 {
+            return Err(Error::last_os_error());
+        }
+    }
+
+    Ok(buffer_info)
+}
+
+pub fn configure() -> Result<TermState> {
+    let std_in = configure_device(CONSOLE_IN, raw_vt_input_mode)?;
+    let std_out = configure_device(CONSOLE_OUT, ansi_output_mode)?;
+    let buffer = buffer_info(std_out.0)?;
+
+    Ok(TermState {
+        std_in: std_in,
+        std_out: std_out,
+        buffer: buffer
+    })
+}
