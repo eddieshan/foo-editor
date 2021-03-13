@@ -60,3 +60,25 @@ pub const FILE_SHARE_READ: DWORD    = 0x00000001;
 pub const FILE_SHARE_WRITE: DWORD   = 0x00000002;
 
 pub const OPEN_EXISTING: DWORD = 3;
+
+extern "system" {
+
+    pub fn GetConsoleMode(hConsoleHandle: HANDLE, lpMode: LPDWORD) -> BOOL;
+
+    pub fn SetConsoleMode(hConsoleHandle: HANDLE, dwMode: DWORD) -> BOOL;
+
+    pub fn CreateFileW(
+        lpFileName: LPCWSTR,
+        dwDesiredAccess: DWORD,
+        dwShareMode: DWORD,
+        lpSecurityAttributes: LPSECURITY_ATTRIBUTES,
+        dwCreationDisposition: DWORD,
+        dwFlagsAndAttributes: DWORD,
+        hTemplateFile: HANDLE
+    ) -> HANDLE;
+
+    pub fn GetConsoleScreenBufferInfo(
+        hConsoleOutput: HANDLE,
+        lpConsoleScreenBufferInfo: PCONSOLE_SCREEN_BUFFER_INFO
+    ) -> BOOL;    
+}
