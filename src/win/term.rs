@@ -4,6 +4,19 @@ use std::io::{Result, Error};
 use crate::win::bindings;
 use crate::win::bindings::{DWORD, HANDLE, COORD, SMALL_RECT, CONSOLE_SCREEN_BUFFER_INFO};
 
+pub struct TermState {
+    std_in: (HANDLE, DWORD),
+    std_out: (HANDLE, DWORD),
+    pub buffer: CONSOLE_SCREEN_BUFFER_INFO
+}
+
+impl TermState {
+    pub fn restore(&self) {
+        set_mode(self.std_in.0, self.std_in.1);
+        set_mode(self.std_out.0, self.std_out.1);
+    }
+}
+
 fn get_mode(handle: HANDLE) -> Result<u32> {
     let mut console_mode = 0;
     unsafe {
