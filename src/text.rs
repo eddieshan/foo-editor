@@ -1,0 +1,1 @@
+pub const WHITESPACE: &[u8] = b" ";
