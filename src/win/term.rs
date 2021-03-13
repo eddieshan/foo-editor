@@ -64,3 +64,12 @@ fn configure_device(device_name: &str, new_mode: fn(DWORD) -> DWORD) -> Result<(
 
     Ok((handle, current_mode))
 }
+
+const RAW_INPUT_MASK: DWORD = bindings::ENABLE_LINE_INPUT |
+                              bindings::ENABLE_ECHO_INPUT;
+
+const VT_INPUT_MASK: DWORD = bindings::ENABLE_VIRTUAL_TERMINAL_INPUT |
+                             bindings::ENABLE_PROCESSED_INPUT;
+
+const CONSOLE_IN: &str = "CONIN$\0";
+const CONSOLE_OUT: &str = "CONOUT$\0";
