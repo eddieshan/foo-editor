@@ -107,6 +107,7 @@ impl Editor {
             match length {
                 1 => match buffer[0] {
                     keys::CTRL_Q => { break; },
+                    keys::CR     => { stdout.write(&theme::LINE_FEED)?; },
                     _            => { stdout.write(&buffer[0..1])?; }
                 },
                 _ => {

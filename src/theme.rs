@@ -7,4 +7,5 @@ pub const STATUS_FOREGROUND: &[u8] = b"200;200;200m";
 
 pub const TEXT_FOREGROUND: &[u8] = b"200;200;200m";
 
-pub const HOME: &[u8] = b"\x1b[0;5H";
+pub const HOME: &[u8] = b"\x1b[0;6H";
+pub const LINE_FEED: &[u8] = b"\x1b[1E\x1b[6G";
