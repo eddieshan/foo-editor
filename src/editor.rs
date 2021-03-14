@@ -5,6 +5,10 @@ use std::io::{Stdout, Result, Read, Write};
 use crate::{ansi, text, theme};
 use crate::win::term::{TermInfo, Term};
 
+const MAX_LINE_WIDTH: usize = 200;
+const WHITESPACE: u8 = 0x20;
+const WHITESPACE_LINE: [u8; MAX_LINE_WIDTH] = [WHITESPACE; MAX_LINE_WIDTH];
+
 pub struct Editor {
     term: Term
 }
@@ -47,9 +51,7 @@ impl Editor {
                 stdout.write(theme::GUTTER_FOREGROUND)?;
                 stdout.write(ansi::UNDERLINE)?;
 
-                for _ in 5..=info.screen_size.width {
-                    stdout.write(text::WHITESPACE)?;
-                }
+                stdout.write(&WHITESPACE_LINE[5..usize::try_from(info.screen_size.width).unwrap()])?;
             } else {
                 print!("{:>3} ", i);
             }
