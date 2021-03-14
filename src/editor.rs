@@ -57,10 +57,7 @@ impl Editor {
     }
 
     fn status_bar(&self, stdout: &mut Stdout, info: &TermInfo) -> Result<()> {
-        stdout.write(ansi::SET_BG)?;
-        stdout.write(theme::STATUS_BACKGROUND)?;
-        stdout.write(ansi::SET_FG)?;
-        stdout.write(theme::STATUS_FOREGROUND)?;
+        stdout.write(theme::STATUS_DEFAULT)?;
 
         let text_x = match info.cursor.x {
             0 => 1,
@@ -100,8 +97,7 @@ impl Editor {
 
         stdout.flush()?;
 
-        stdout.write(ansi::SET_FG)?;
-        stdout.write(theme::TEXT_FOREGROUND)?;
+        stdout.write(theme::TEXT_DEFAULT)?;
 
         let mut buffer: ReadBuffer = [0, 0, 0];
 
