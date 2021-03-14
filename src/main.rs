@@ -4,7 +4,7 @@ mod win {
 }
 
 mod ansi;
-mod text;
+mod keys;
 mod theme;
 mod editor;
 
@@ -14,9 +14,9 @@ use crate::win::term;
 use crate::editor::Editor;
 
 fn main() -> Result<()> {
+
     let state = term::configure()?;
-
     let mut editor = Editor::new(state);
-
+    
     editor.run()
 }

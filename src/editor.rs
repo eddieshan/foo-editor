@@ -2,12 +2,13 @@ use std::convert::{TryFrom};
 use std::io;
 use std::io::{Stdout, Result, Read, Write};
 
-use crate::{ansi, text, theme};
+use crate::{ansi, keys, theme};
 use crate::win::term::{TermInfo, Term};
 
 const MAX_LINE_WIDTH: usize = 200;
-const WHITESPACE: u8 = 0x20;
-const WHITESPACE_LINE: [u8; MAX_LINE_WIDTH] = [WHITESPACE; MAX_LINE_WIDTH];
+const WHITESPACE_LINE: [u8; MAX_LINE_WIDTH] = [keys::WHITESPACE; MAX_LINE_WIDTH];
+
+type ReadBuffer = [u8; 3];
 
 pub struct Editor {
     term: Term
@@ -41,21 +42,7 @@ impl Editor {
         let height = info.screen_size.height;
 
         for i in 1..height {
-
-            if i == height - 1 {
-                stdout.write(ansi::UNDERLINE)?;
-                print!("{:>3} ", i);
-                stdout.write(ansi::RESET)?;
-
-                stdout.write(ansi::SET_FG)?;
-                stdout.write(theme::GUTTER_FOREGROUND)?;
-                stdout.write(ansi::UNDERLINE)?;
-
-                stdout.write(&WHITESPACE_LINE[5..usize::try_from(info.screen_size.width).unwrap()])?;
-            } else {
-                print!("{:>3} ", i);
-            }
-
+            print!("{:>3} ", i);
             stdout.write(ansi::NEXT_LINE)?;
         }
 
@@ -65,20 +52,28 @@ impl Editor {
     }
 
     fn status_bar(&self, stdout: &mut Stdout, info: &TermInfo) -> Result<()> {
-
+        stdout.write(ansi::SET_BG)?;
+        stdout.write(theme::STATUS_BACKGROUND)?;
         stdout.write(ansi::SET_FG)?;
         stdout.write(theme::STATUS_FOREGROUND)?;
 
-        let status = format!("BUFFER [{}, {}] | SCREEN [{}, {}]", 
+        let text_x = match info.cursor.x {
+            0 => 1,
+            x => x - theme::GUTTER_WIDTH + 1
+        };
+        let text_y = info.cursor.y + 1;
+
+        let status = format!("BUFFER [{}, {}] | SCREEN [{}, {}] | [{}, {}]", 
                         info.buffer_size.width, info.buffer_size.height, 
-                        info.screen_size.width, info.screen_size.height);
+                        info.screen_size.width, info.screen_size.height,
+                        text_x, text_y);
 
         let last_row = info.screen_size.height;
-        let last_col = info.screen_size.width;
+        let last_col = info.screen_size.width + 1;
+        let start_col = usize::try_from(last_col).unwrap() - status.len();
 
-        let start_col = last_col - u16::try_from(status.len()).unwrap();
-
-        Editor::set_pos(last_row, start_col, stdout);
+        Editor::set_pos(last_row, 0, stdout);
+        stdout.write(&WHITESPACE_LINE[0..start_col - 1])?;
 
         print!("{}", status);
 
@@ -104,25 +99,32 @@ impl Editor {
         stdout.flush()?;
 
         stdout.write(ansi::SET_FG)?;
-        stdout.write(theme::TEXT_FOREGROUND)?;        
+        stdout.write(theme::TEXT_FOREGROUND)?;
 
-        let mut buffer: [u8; 3] = [0, 0, 0];
+        let mut buffer: ReadBuffer = [0, 0, 0];
 
         loop {
     
             let length = stdin.read(&mut buffer)?;
-    
-            match (length, buffer[0] as char) {
-                (1, 'q') => {
-                    break;
-                },
-                (1, c) => {
-                    print!("{}", c);
+
+            match length {
+                1 => match buffer[0] {
+                    keys::CTRL_Q => { break; },
+                    _            => { stdout.write(&buffer[0..1])?; }
                 },
                 _ => {
                     stdout.write(&buffer)?;
-                }
+                }                
             }
+
+            stdout.flush()?;
+
+            stdout.write(ansi::SAVE_CURSOR)?;
+            
+            let term_info = self.term.info()?;            
+            self.status_bar(&mut stdout, &term_info)?;
+
+            stdout.write(ansi::RESTORE_CURSOR)?;
     
             stdout.flush()?;
         }
