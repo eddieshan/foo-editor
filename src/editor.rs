@@ -63,10 +63,7 @@ impl Editor {
         };
         let text_y = info.cursor.y + 1;
 
-        let status = format!("BUFFER [{}, {}] | SCREEN [{}, {}] | [{}, {}]", 
-                        info.buffer_size.width, info.buffer_size.height, 
-                        info.screen_size.width, info.screen_size.height,
-                        text_x, text_y);
+        let status = format!("{}:{},{}:{}", text_x, text_y, info.buffer_size.width, info.buffer_size.height);
 
         let last_row = info.screen_size.height;
         let last_col = info.screen_size.width + 1;
