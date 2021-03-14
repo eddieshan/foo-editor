@@ -33,16 +33,21 @@ impl Editor {
     }
 
     fn gutter(&mut self, stdout: &mut Stdout, info: &TermInfo) -> Result<()> {
-
-        stdout.write(ansi::SET_BG)?;
-        stdout.write(theme::GUTTER_BACKGROUND)?;
-        stdout.write(ansi::SET_FG)?;
-        stdout.write(theme::GUTTER_FOREGROUND)?;
+        stdout.write(ansi::HOME)?;
+        stdout.write(theme::GUTTER_DEFAULT)?;
 
         let height = info.screen_size.height;
+        let cursor_y = info.cursor.y + 1;
 
         for i in 1..height {
-            print!("{:>3} ", i);
+            if i == cursor_y {
+                stdout.write(theme::GUTTER_HIGHLIGHT)?;
+                print!("{:>3} ", i);
+                stdout.write(theme::GUTTER_DEFAULT)?;
+            } else {
+                print!("{:>3} ", i);
+            }            
+            
             stdout.write(ansi::NEXT_LINE)?;
         }
 
@@ -119,7 +124,9 @@ impl Editor {
 
             stdout.write(ansi::SAVE_CURSOR)?;
             
-            let term_info = self.term.info()?;            
+            let term_info = self.term.info()?;
+
+            self.gutter(&mut stdout, &term_info)?;
             self.status_bar(&mut stdout, &term_info)?;
 
             stdout.write(ansi::RESTORE_CURSOR)?;
