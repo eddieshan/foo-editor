@@ -61,13 +61,12 @@ impl Editor {
 
         let status = format!("{}:{},{}:{}", text_x, text_y, info.buffer_size.width, info.buffer_size.height);
 
-        let last_row = info.screen_size.height;
         let last_col = info.screen_size.width + 1;
         let start_col = last_col - status.len();
 
-        Editor::set_pos(last_row, 0, stdout);
+        Editor::set_pos(info.screen_size.height, 0, stdout);
         stdout.write(&WHITESPACE_LINE[0..info.screen_size.width])?;
-        Editor::set_pos(last_row, start_col, stdout);
+        Editor::set_pos(info.screen_size.height, start_col, stdout);
         print!("{}", status);
 
         stdout.write(ansi::RESET)?;
@@ -82,16 +81,16 @@ impl Editor {
 
         stdout.write(ansi::CLEAR)?;
         stdout.write(theme::HOME)?;
+        stdout.flush()?;
 
         let term_info = self.term.info()?;
 
         self.gutter(&mut stdout, &term_info);
         self.status_bar(&mut stdout, &term_info);
+        stdout.write(theme::TEXT_DEFAULT)?;
         stdout.write(theme::HOME)?;
 
         stdout.flush()?;
-
-        stdout.write(theme::TEXT_DEFAULT)?;
 
         let mut buffer: CharBuffer = [0; 4];
 
