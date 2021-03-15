@@ -1,12 +1,9 @@
-use std::convert::{TryFrom};
 use std::io;
 use std::io::{Stdout, Result, Read, Write};
 
 use crate::{ansi, keys, theme};
+use crate::components::{status_bar, gutter};
 use crate::win::term::{TermInfo, Term};
-
-const MAX_LINE_WIDTH: usize = 200;
-const WHITESPACE_LINE: [u8; MAX_LINE_WIDTH] = [keys::WHITESPACE; MAX_LINE_WIDTH];
 
 type CharBuffer = [u8; 4];
 
@@ -20,60 +17,6 @@ impl Editor {
         Editor { term: term }
     }
 
-    fn set_pos(row: usize, col: usize, stdout: &mut Stdout) {
-        stdout.write(ansi::SEQ);
-        print!("{};{}", row, col);
-        stdout.write(ansi::POS);
-    }
-
-    fn gutter(&mut self, stdout: &mut Stdout, info: &TermInfo) -> Result<()> {
-        stdout.write(ansi::HOME)?;
-        stdout.write(theme::GUTTER_DEFAULT)?;
-
-        let height = info.screen_size.height;
-        let cursor_y = info.cursor.y + 1;
-
-        for i in 1..height {
-            if i == cursor_y {
-                stdout.write(theme::GUTTER_HIGHLIGHT)?;
-                print!("{:>3} ", i);
-                stdout.write(theme::GUTTER_DEFAULT)?;
-            } else {
-                print!("{:>3} ", i);
-            }            
-            
-            stdout.write(ansi::NEXT_LINE)?;
-        }
-
-        stdout.write(ansi::RESET)?;
-    
-        Ok(())
-    }
-
-    fn status_bar(&self, stdout: &mut Stdout, info: &TermInfo) -> Result<()> {
-        stdout.write(theme::STATUS_DEFAULT)?;
-
-        let text_x = match info.cursor.x {
-            0 => 1,
-            x => x - theme::GUTTER_WIDTH + 1
-        };
-        let text_y = info.cursor.y + 1;
-
-        let status = format!("{}:{},{}:{}", text_x, text_y, info.buffer_size.width, info.buffer_size.height);
-
-        let last_col = info.screen_size.width + 1;
-        let start_col = last_col - status.len();
-
-        Editor::set_pos(info.screen_size.height, 0, stdout);
-        stdout.write(&WHITESPACE_LINE[0..info.screen_size.width])?;
-        Editor::set_pos(info.screen_size.height, start_col, stdout);
-        print!("{}", status);
-
-        stdout.write(ansi::RESET)?;
-        
-        Ok(())
-    }
-
     pub fn run(&mut self) -> Result<()> {
 
         let mut stdout = io::stdout();
@@ -85,8 +28,8 @@ impl Editor {
 
         let term_info = self.term.info()?;
 
-        self.gutter(&mut stdout, &term_info);
-        self.status_bar(&mut stdout, &term_info);
+        gutter::render(&mut stdout, &term_info);
+        status_bar::render(&mut stdout, &term_info);
         stdout.write(theme::TEXT_DEFAULT)?;
         stdout.write(theme::HOME)?;
 
@@ -122,8 +65,8 @@ impl Editor {
             
             let term_info = self.term.info()?;
 
-            self.gutter(&mut stdout, &term_info)?;
-            self.status_bar(&mut stdout, &term_info)?;
+            gutter::render(&mut stdout, &term_info)?;
+            status_bar::render(&mut stdout, &term_info);
 
             stdout.write(ansi::RESTORE_CURSOR)?;
     

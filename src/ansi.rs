@@ -1,3 +1,5 @@
+use std::io::{Write, Stdout};
+
 pub const SEQ: &[u8] = b"\x1b[";
 
 pub const CLEAR: &[u8] = b"\x1b[2J";
@@ -20,3 +22,9 @@ pub const UNDERLINE: &[u8] = b"\x1b[4m";
 pub const STRIKETROUGH: &[u8] = b"\x1b[9m";
 
 pub const DEL: u32 = 0x1b5b337e;
+
+pub fn pos(row: usize, col: usize, stdout: &mut Stdout) {
+    stdout.write(SEQ);
+    print!("{};{}", row, col);
+    stdout.write(POS);
+}
