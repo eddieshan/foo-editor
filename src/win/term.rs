@@ -6,14 +6,14 @@ use crate::win::bindings;
 use crate::win::bindings::{DWORD, HANDLE, COORD, SMALL_RECT, CONSOLE_SCREEN_BUFFER_INFO};
 
 pub struct Size {
-    pub width: u16,
-    pub height: u16
+    pub width: usize,
+    pub height: usize
 }
 
 impl TryFrom<COORD> for Size {
     type Error = Error;
     fn try_from(coord: COORD) -> std::result::Result<Self, Self::Error> {
-        match (u16::try_from(coord.X), u16::try_from(coord.Y)) {
+        match (usize::try_from(coord.X), usize::try_from(coord.Y)) {
             (Ok(w), Ok(h)) => Ok(Size { width: w, height: h }),
             _              => Err(Error::last_os_error())
         }
@@ -21,14 +21,14 @@ impl TryFrom<COORD> for Size {
 }
 
 pub struct Position {
-    pub x: u16,
-    pub y: u16
+    pub x: usize,
+    pub y: usize
 }
 
 impl TryFrom<COORD> for Position {
     type Error = Error;
     fn try_from(coord: COORD) -> std::result::Result<Self, Self::Error> {
-        match (u16::try_from(coord.X), u16::try_from(coord.Y)) {
+        match (usize::try_from(coord.X), usize::try_from(coord.Y)) {
             (Ok(x), Ok(y)) => Ok(Position { x: x, y: y }),
             _              => Err(Error::last_os_error())
         }

@@ -20,13 +20,7 @@ impl Editor {
         Editor { term: term }
     }
 
-    fn set_col(col: i16, stdout: &mut Stdout) {
-        stdout.write(ansi::SEQ);
-        print!("{}", col);
-        stdout.write(ansi::COL);
-    }
-
-    fn set_pos(row: u16, col: u16, stdout: &mut Stdout) {
+    fn set_pos(row: usize, col: usize, stdout: &mut Stdout) {
         stdout.write(ansi::SEQ);
         print!("{};{}", row, col);
         stdout.write(ansi::POS);
@@ -69,11 +63,11 @@ impl Editor {
 
         let last_row = info.screen_size.height;
         let last_col = info.screen_size.width + 1;
-        let start_col = usize::try_from(last_col).unwrap() - status.len();
+        let start_col = last_col - status.len();
 
         Editor::set_pos(last_row, 0, stdout);
-        stdout.write(&WHITESPACE_LINE[0..start_col - 1])?;
-
+        stdout.write(&WHITESPACE_LINE[0..info.screen_size.width])?;
+        Editor::set_pos(last_row, start_col, stdout);
         print!("{}", status);
 
         stdout.write(ansi::RESET)?;
@@ -87,7 +81,7 @@ impl Editor {
         let mut stdin = io::stdin();
 
         stdout.write(ansi::CLEAR)?;
-        stdout.write(ansi::HOME)?;
+        stdout.write(theme::HOME)?;
 
         let term_info = self.term.info()?;
 
