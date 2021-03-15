@@ -118,7 +118,8 @@ impl Editor {
             match code {
                 keys::CTRL_Q => { break; },
                 keys::CR     => { stdout.write(&theme::LINE_FEED)?; },
-                ansi::DEL    => { stdout.write(&ansi::DEL_1)?; },
+                keys::BS     => { stdout.write(&ansi::BACKDEL_1)?; },
+                ansi::DEL    => { stdout.write(&ansi::DEL_1)?; },                
                 _            => { stdout.write(&buffer[0..length])?; }
             }
 

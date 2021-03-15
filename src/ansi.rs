@@ -11,6 +11,7 @@ pub const SAVE_CURSOR: &[u8] = b"\x1b[s";
 pub const RESTORE_CURSOR: &[u8] = b"\x1b[u";
 
 pub const DEL_1: &[u8] = b"\x1b[1P";
+pub const BACKDEL_1: &[u8] = b"\x1b[1D\x1b[1P";
 
 pub const SET_FG: &[u8] = b"\x1b[38;2;";
 pub const SET_BG: &[u8] = b"\x1b[48;2;";
