@@ -108,22 +108,18 @@ impl Editor {
             buffer[3] = 0;
     
             let length = stdin.read(&mut buffer)?;
+            let code = u32::from_be_bytes(buffer);
 
             //print!("READ: ({}, {}, {}, {})", buffer[0], buffer[1], buffer[2], buffer[3]);
 
             // TODO: for some reason char buffer conversion to u32 with from_ne_bytes results in wrong endiannes.
             // Explicit big endian works but perhaps depending on byte endianness here is not the right strategy.
             // To be reviewed.
-            match length {
-                1 => match buffer[0] {
-                    keys::CTRL_Q => { break; },
-                    keys::CR     => { stdout.write(&theme::LINE_FEED)?; },
-                    _            => { stdout.write(&buffer[0..1])?; }
-                },
-                _ => match u32::from_be_bytes(buffer) {
-                    ansi::DEL => { stdout.write(&ansi::DEL_1)?; },
-                    _         => { stdout.write(&buffer[0..length])?; }
-                }         
+            match code {
+                keys::CTRL_Q => { break; },
+                keys::CR     => { stdout.write(&theme::LINE_FEED)?; },
+                ansi::DEL    => { stdout.write(&ansi::DEL_1)?; },
+                _            => { stdout.write(&buffer[0..length])?; }
             }
 
             stdout.flush()?;
