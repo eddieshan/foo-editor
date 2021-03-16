@@ -1,6 +1,7 @@
 mod ansi;
 mod keys;
 mod theme;
+mod cursor;
 
 mod win {
     pub mod bindings;

@@ -1,17 +1,17 @@
 use std::io::{Stdout, Result, Write};
 
 use crate::{ansi, keys, theme};
-use crate::win::term::TermInfo;
+use crate::win::term::{Position, TermInfo};
 
-pub fn render(stdout: &mut Stdout, info: &TermInfo) -> Result<()> {
+pub fn render(stdout: &mut Stdout, cursor: &Position, info: &TermInfo) -> Result<()> {
     stdout.write(ansi::HOME)?;
     stdout.write(theme::GUTTER_DEFAULT)?;
 
-    let height = info.screen_size.height;
-    let cursor_y = info.cursor.y + 1;
+    //let height = info.screen_size.height;
+    // let cursor_y = info.cursor.y + 1;
 
-    for i in 1..height {
-        if i == cursor_y {
+    for i in 1..info.screen_size.height {
+        if i == cursor.y {
             stdout.write(theme::GUTTER_HIGHLIGHT)?;
             print!("{:>3} ", i);
             stdout.write(theme::GUTTER_DEFAULT)?;
