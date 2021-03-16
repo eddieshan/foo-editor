@@ -1,9 +1,7 @@
-use std::convert::{TryFrom};
-use std::io;
-use std::io::{Stdout, Result, Read, Write};
+use std::io::{Stdout, Result, Write};
 
+use crate::core::*;
 use crate::{ansi, keys, theme};
-use crate::win::term::{Position, TermInfo};
 
 const MAX_LINE_WIDTH: usize = 200;
 const WHITESPACE_LINE: [u8; MAX_LINE_WIDTH] = [keys::WHITESPACE; MAX_LINE_WIDTH];

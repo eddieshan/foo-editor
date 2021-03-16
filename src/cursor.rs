@@ -1,4 +1,4 @@
-use crate::win::term::Position;
+use crate::core::Position;
 
 pub trait Cursor {
     fn up(&self) -> Position;

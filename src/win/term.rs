@@ -1,14 +1,10 @@
 use std::ptr;
-use std::convert::{TryFrom};
+use std::convert::TryFrom;
 use std::io::{Result, Error};
 
+use crate::core::*;
 use crate::win::bindings;
 use crate::win::bindings::{DWORD, HANDLE, COORD, SMALL_RECT, CONSOLE_SCREEN_BUFFER_INFO};
-
-pub struct Size {
-    pub width: usize,
-    pub height: usize
-}
 
 impl TryFrom<COORD> for Size {
     type Error = Error;
@@ -20,11 +16,6 @@ impl TryFrom<COORD> for Size {
     } 
 }
 
-pub struct Position {
-    pub x: usize,
-    pub y: usize
-}
-
 impl TryFrom<COORD> for Position {
     type Error = Error;
     fn try_from(coord: COORD) -> std::result::Result<Self, Self::Error> {
@@ -33,12 +24,6 @@ impl TryFrom<COORD> for Position {
             _              => Err(Error::last_os_error())
         }
     } 
-}
-
-pub struct TermInfo {
-    pub buffer_size: Size,
-    pub screen_size: Size,
-    pub cursor: Position
 }
 
 pub struct Term {
@@ -115,8 +100,6 @@ fn device_handle(device_name: &str) -> HANDLE {
 fn configure_device(device_name: &str, new_mode: fn(DWORD) -> DWORD) -> Result<(HANDLE, DWORD)> {
     let handle = device_handle(device_name);
     let current_mode = get_mode(handle)?;
-
-    println!("CURRENT MODE {}", current_mode);
 
     set_mode(handle, new_mode(current_mode))?;
 

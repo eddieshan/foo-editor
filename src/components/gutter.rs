@@ -1,7 +1,7 @@
 use std::io::{Stdout, Result, Write};
 
-use crate::{ansi, keys, theme};
-use crate::win::term::{Position, TermInfo};
+use crate::{ansi, theme};
+use crate::core::*;
 
 pub fn render(stdout: &mut Stdout, cursor: &Position, info: &TermInfo) -> Result<()> {
     stdout.write(ansi::HOME)?;

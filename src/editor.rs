@@ -1,10 +1,11 @@
 use std::io;
-use std::io::{Stdout, Result, Read, Write};
+use std::io::{Result, Read, Write};
 
+use crate::core::*;
 use crate::{ansi, keys, theme};
 use crate::cursor::Cursor;
 use crate::components::{status_bar, gutter};
-use crate::win::term::{Position, TermInfo, Term};
+use crate::win::term::Term;
 
 type CharBuffer = [u8; 4];
 
