@@ -11,12 +11,6 @@ const WHITESPACE_LINE: [u8; MAX_LINE_WIDTH] = [keys::WHITESPACE; MAX_LINE_WIDTH]
 pub fn render(stdout: &mut Stdout, cursor: &Position, info: &TermInfo) -> Result<()> {
     stdout.write(theme::STATUS_DEFAULT)?;
 
-    // let text_x = match info.cursor.x {
-    //     0 => 1,
-    //     x => x - theme::GUTTER_WIDTH + 1
-    // };
-    //let text_y = info.cursor.y + 1;
-
     let status = format!("{}:{},{}:{} ", cursor.x, cursor.y, info.buffer_size.width, info.buffer_size.height);
 
     let last_col = info.screen_size.width + 1;
