@@ -79,5 +79,15 @@ impl Cursor {
             return true;
         }
         return false;
-    }    
+    }
+
+    pub fn ln_start(&mut self) -> bool {
+        self.pos = self.pos - (self.pos % self.width);
+        true
+    }
+
+    pub fn ln_end(&mut self) -> bool {
+        self.pos = self.pos + self.width - (self.pos % self.width) - 1;
+        true
+    }
 }

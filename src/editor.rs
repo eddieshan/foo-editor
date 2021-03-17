@@ -41,6 +41,7 @@ impl Editor {
         stdout.flush()?;
 
         let mut buffer: CharBuffer = [0; 4];
+        let empty: &[u8] = &[];
 
         loop {
             buffer[0] = 0;
@@ -53,16 +54,18 @@ impl Editor {
 
             //print!("READ: ({}, {}, {}, {})", buffer[0], buffer[1], buffer[2], buffer[3]);
             let (result, is_valid_cursor) = match code {
-                keys::CTRL_Q => { break; },
-                keys::CR     => (theme::LINE_FEED,   cursor.crlf()),
-                keys::UP     => (&buffer[0..length], cursor.up()),
-                keys::DOWN   => (&buffer[0..length], cursor.down()),
-                keys::RIGHT  => (&buffer[0..length], cursor.right()),
-                keys::LEFT   => (&buffer[0..length], cursor.left()),
-                keys::HTAB   => (ansi::BACKDEL_1,    cursor.htab()),
-                keys::BS     => (ansi::BACKDEL_1,    cursor.left()),
-                ansi::DEL    => (ansi::DEL_1,        true),
-                _            => (&buffer[0..length], cursor.right())
+                keys::CTRL_Q    => { break; },
+                keys::CR        => (empty, cursor.crlf()),
+                keys::UP        => (empty, cursor.up()),
+                keys::DOWN      => (empty, cursor.down()),
+                keys::RIGHT     => (empty, cursor.right()),
+                keys::LEFT      => (empty, cursor.left()),
+                keys::HTAB      => (empty, cursor.htab()),
+                keys::LN_START  => (empty, cursor.ln_start()),
+                keys::LN_END    => (empty, cursor.ln_end()),
+                keys::BS        => (ansi::BACKDEL_1,    cursor.left()),
+                ansi::DEL       => (ansi::DEL_1,        true),
+                _               => (&buffer[0..length], cursor.right())
             };
 
             if is_valid_cursor {
