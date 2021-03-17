@@ -41,7 +41,7 @@ impl Cursor {
     pub fn down(&mut self) -> bool {
         let next_pos = self.pos + self.width;
         if next_pos < self.limit {
-            self.pos += self.width;
+            self.pos = next_pos;
             return true;
         }
         return false;
@@ -71,4 +71,13 @@ impl Cursor {
         }
         return false;
     }
+
+    pub fn htab(&mut self) -> bool {
+        let next_pos = self.pos + theme::HORIZONTAL_TAB;
+        if self.pos < self.limit {
+            self.pos = next_pos;
+            return true;
+        }
+        return false;
+    }    
 }

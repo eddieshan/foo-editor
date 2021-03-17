@@ -13,3 +13,4 @@ pub const UP: u32     = 0x1b5b4100;
 pub const DOWN: u32   = 0x1b5b4200;
 pub const RIGHT: u32  = 0x1b5b4300;
 pub const LEFT: u32   = 0x1b5b4400;
+pub const HTAB: u32   = 0x09000000;

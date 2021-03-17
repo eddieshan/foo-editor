@@ -59,6 +59,7 @@ impl Editor {
                 keys::DOWN   => (&buffer[0..length], cursor.down()),
                 keys::RIGHT  => (&buffer[0..length], cursor.right()),
                 keys::LEFT   => (&buffer[0..length], cursor.left()),
+                keys::HTAB   => (ansi::BACKDEL_1,    cursor.htab()),
                 keys::BS     => (ansi::BACKDEL_1,    cursor.left()),
                 ansi::DEL    => (ansi::DEL_1,        true),
                 _            => (&buffer[0..length], cursor.right())
