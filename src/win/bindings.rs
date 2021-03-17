@@ -1,3 +1,4 @@
+#![allow(non_camel_case_types, non_snake_case)]
 use std::os::raw::*;
 
 pub type wchar_t = u16;
