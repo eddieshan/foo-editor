@@ -1,5 +1,5 @@
 use crate::core::{Size, Position};
-use crate::theme;
+use crate::settings;
 
 pub struct Cursor {
     pos: usize,
@@ -10,7 +10,7 @@ pub struct Cursor {
 impl Cursor {
 
     pub fn new(screen_size: &Size) -> Cursor {
-        let width = screen_size.width - theme::GUTTER_WIDTH;
+        let width = screen_size.width - settings::GUTTER_WIDTH;
         let height = screen_size.height - 1;
 
         Cursor { pos: 0, width: width, limit: width*height - 1 }
@@ -25,7 +25,7 @@ impl Cursor {
 
     pub fn screen_pos(&self) -> Position {
         Position { 
-            x: (self.pos % self.width) + 1 + theme::GUTTER_WIDTH, 
+            x: (self.pos % self.width) + 1 + settings::GUTTER_WIDTH, 
             y: (self.pos / self.width) + 1
         }
     }    
@@ -73,7 +73,7 @@ impl Cursor {
     }
 
     pub fn htab(&mut self) -> bool {
-        let next_pos = self.pos + theme::HORIZONTAL_TAB;
+        let next_pos = self.pos + settings::HORIZONTAL_TAB;
         if self.pos < self.limit {
             self.pos = next_pos;
             return true;
