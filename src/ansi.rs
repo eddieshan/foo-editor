@@ -9,8 +9,6 @@ pub const COL: &[u8] = b"G";
 pub const POS: &[u8] = b"H";
 pub const NEXT_LINE: &[u8] = b"\x1b[1E";
 pub const HOME: &[u8] = b"\x1b[H";
-pub const SAVE_CURSOR: &[u8] = b"\x1b[s";
-pub const RESTORE_CURSOR: &[u8] = b"\x1b[u";
 
 pub const DEL_1: &[u8] = b"\x1b[1P";
 pub const BACKDEL_1: &[u8] = b"\x1b[1D\x1b[1P";

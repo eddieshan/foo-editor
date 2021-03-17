@@ -1,41 +1,74 @@
-use crate::core::Position;
+use crate::core::{Size, Position};
+use crate::theme;
 
-pub trait Cursor {
-    fn up(&self) -> Position;
-
-    fn down(&self) -> Position;
-
-    fn right(&self) -> Position;
-
-    fn left(&self) -> Position;
-
-    fn crlf(&self) -> Position;
-
-    fn is_valid(&self, limit: &Position) -> bool;
+pub struct Cursor {
+    pos: usize,
+    limit: usize,
+    width: usize
 }
 
-impl Cursor for Position {
-    fn up(&self) -> Position {
-        Position { x: self.x, y: self.y - 1 }
+impl Cursor {
+
+    pub fn new(screen_size: &Size) -> Cursor {
+        let width = screen_size.width - theme::GUTTER_WIDTH;
+        let height = screen_size.height - 1;
+
+        Cursor { pos: 0, width: width, limit: width*height - 1 }
     }
 
-    fn down(&self) -> Position {
-        Position { x: self.x, y: self.y + 1 }
-    }
-    
-    fn right(&self) -> Position {
-        Position { x: self.x + 1, y: self.y }
-    }
-    
-    fn left(&self) -> Position {
-        Position { x: self.x - 1, y: self.y }
-    }
-    
-    fn crlf(&self) -> Position {
-        Position { x: 1, y: self.y + 1 }
+    pub fn pos(&self) -> Position {
+        Position { 
+            x: (self.pos % self.width) + 1, 
+            y: (self.pos / self.width) + 1
+        }
     }
 
-    fn is_valid(&self, limit: &Position) -> bool {
-        self.x > 0 && self.y > 0 && self.x < limit.x && self.y < limit.y
+    pub fn screen_pos(&self) -> Position {
+        Position { 
+            x: (self.pos % self.width) + 1 + theme::GUTTER_WIDTH, 
+            y: (self.pos / self.width) + 1
+        }
+    }    
+
+    pub fn up(&mut self) -> bool {
+        if self.pos >= self.width {
+            self.pos -= self.width;
+            return true;
+        }
+        return false;
+    }
+
+    pub fn down(&mut self) -> bool {
+        let next_pos = self.pos + self.width;
+        if next_pos < self.limit {
+            self.pos += self.width;
+            return true;
+        }
+        return false;
+    }
+    
+    pub fn right(&mut self) -> bool {
+        if self.pos < self.limit {
+            self.pos += 1;
+            return true;
+        }
+        return false;
+    }
+    
+    pub fn left(&mut self) -> bool {
+        if self.pos > 0 {
+            self.pos -= 1;
+            return true;
+        }
+        return false;
+    }
+    
+    pub fn crlf(&mut self) -> bool {
+        let new_pos = self.pos + self.width - (self.pos % self.width);
+        if new_pos < self.limit {
+            self.pos = new_pos;
+            return true;
+        }
+        return false;
     }
 }
