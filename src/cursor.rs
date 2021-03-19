@@ -28,7 +28,7 @@ impl Cursor {
             x: (self.pos % self.width) + 1 + settings::GUTTER_WIDTH, 
             y: (self.pos / self.width) + 1
         }
-    }    
+    }
 
     pub fn up(&mut self) -> bool {
         if self.pos >= self.width {

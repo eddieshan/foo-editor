@@ -15,6 +15,7 @@ mod components {
     pub mod gutter;
 }
 
+mod gap_buffer;
 mod editor;
 
 use std::io::Result;
