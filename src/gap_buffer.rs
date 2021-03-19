@@ -1,5 +1,6 @@
 use std::io::Write;
 
+use crate::settings;
 use crate::core::Position;
 
 const KB: usize = 1024;
@@ -66,15 +67,35 @@ impl GapBuffer {
         &self.bytes[0..self.gap]
     }
 
-    pub fn dump<T: Write>(&self, writer: &mut T)  {
-        writer.write(&self.bytes[0..self.gap]);
-
-        if self.end < BUFFER_LIMIT {
-                writer.write(&self.bytes[self.end + 1..BUFFER_SIZE]);
+    fn dump_lines<T: Write>(&self, writer: &mut T, from: usize, to: usize) -> (usize, usize)  {
+        let mut ln_start = from;
+        let mut ln_count = 0;
+        for i in from..to {
+            if self.bytes[i] == 10 {
+                writer.write(&self.bytes[ln_start..i]);
+                writer.write(settings::LINE_FEED);
+                ln_count += 1;
+                ln_start = i + 1;
+            }
         }
+
+        writer.write(&self.bytes[ln_start..to]);
+
+        (ln_count, to - ln_start)
     }
 
-    pub fn pos(&self) -> usize {
-        self.gap
-    }    
+    pub fn dump<T: Write>(&self, writer: &mut T) -> (usize, Position)  {
+        let (gap_ln, gap_col) = self.dump_lines(writer, 0, self.gap);
+        let lncol = Position { x: gap_col + 1, y: gap_ln + 1 };
+
+        let total_ln = match self.end < BUFFER_LIMIT {
+            true => {
+                let (end_ln, _) = self.dump_lines(writer, self.end + 1, BUFFER_SIZE);
+                gap_ln + end_ln + 1
+            },
+            false => gap_ln + 1
+        };
+
+        (total_ln, lncol)
+    }
 }

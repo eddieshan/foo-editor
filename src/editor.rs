@@ -32,13 +32,13 @@ impl Editor {
 
         let start_pos = Position { x: 1, y: 1 };
 
-        gutter::render(&mut stdout, &start_pos, &term_info);
+        gutter::render(&mut stdout, start_pos.y, 1, &term_info);
         status_bar::render(&mut stdout, &start_pos, &term_info);
 
         stdout.write(theme::HOME)?;
 
         stdout.flush()?;
-
+        
         let mut buffer: CharBuffer = [0; 4];
         let empty: &[u8] = &[];
         let mut gap_buffer = GapBuffer::new();
@@ -54,7 +54,7 @@ impl Editor {
 
             match code {
                 keys::CTRL_Q    => { break; },
-                keys::CR        => { gap_buffer.insert(13) },
+                keys::CR        => gap_buffer.insert(10),
                 keys::UP        => { },
                 keys::DOWN      => { },
                 keys::RIGHT     => gap_buffer.right(),
@@ -75,13 +75,9 @@ impl Editor {
             stdout.write(theme::HOME)?;
             stdout.write(theme::TEXT_DEFAULT)?;
             
-            gap_buffer.dump(&mut stdout);
+            let (total_ln, lncol) = gap_buffer.dump(&mut stdout);
             
-            let pos = gap_buffer.pos();
-
-            let lncol = Position { x: (pos % buffer_width) + 1, y: (pos / buffer_width) + 1 };
-
-            gutter::render(&mut stdout, &lncol, &term_info)?;
+            gutter::render(&mut stdout, lncol.y, total_ln, &term_info)?;
             status_bar::render(&mut stdout, &lncol, &term_info);
 
             let screen_pos = Position { x: lncol.x + settings::GUTTER_WIDTH, y: lncol.y };
