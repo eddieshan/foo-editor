@@ -54,7 +54,7 @@ impl Editor {
 
             match code {
                 keys::CTRL_Q    => { break; },
-                keys::CR        => gap_buffer.insert(10),
+                keys::CR        => gap_buffer.insert(keys::LINE_FEED),
                 keys::UP        => { },
                 keys::DOWN      => { },
                 keys::RIGHT     => gap_buffer.right(),

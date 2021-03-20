@@ -1,6 +1,6 @@
 use std::io::Write;
 
-use crate::settings;
+use crate::{settings, keys};
 use crate::core::Position;
 
 const KB: usize = 1024;
@@ -71,7 +71,7 @@ impl GapBuffer {
         let mut ln_start = from;
         let mut ln_count = 0;
         for i in from..to {
-            if self.bytes[i] == 10 {
+            if self.bytes[i] == keys::LINE_FEED {
                 writer.write(&self.bytes[ln_start..i]);
                 writer.write(settings::LINE_FEED);
                 ln_count += 1;
