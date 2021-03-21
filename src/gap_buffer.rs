@@ -51,6 +51,79 @@ impl GapBuffer {
         }
     }
 
+    fn ln_start(&mut self) -> usize {
+        let mut pos = self.gap;
+        while pos > 0 {
+            pos -= 1;
+
+            if self.bytes[pos] == keys::LINE_FEED {
+                return pos + 1;
+            }
+        }
+
+        0
+    }
+
+    fn next_new_line(&mut self) -> Option<usize> {
+        let mut pos = self.end + 1;
+        while pos < BUFFER_SIZE {
+            if self.bytes[pos] == keys::LINE_FEED {
+                return Some(pos)
+            }
+            pos += 1;
+        }
+        None
+    }
+
+    pub fn up(&mut self) {
+        let mut pos = self.gap;
+        let mut ln_count = 0;
+        let mut col_offset = [0_usize; 2];
+
+        while pos > 0 && ln_count < 2 {
+
+            pos -= 1;
+
+            if self.bytes[pos] == keys::LINE_FEED {
+                ln_count += 1;
+            } else {
+                col_offset[ln_count] += 1;
+            }
+        }
+
+        if ln_count > 0 {
+            let new_gap = match pos {
+                0 => pos + col_offset[0],
+                _ => pos + col_offset[0] + 1
+            };
+            let size = self.gap - new_gap;
+            let new_end = self.end - size;
+            self.bytes.copy_within(new_gap..self.gap, new_end + 1);
+            self.gap = new_gap;
+            self.end = new_end;
+        }
+    }
+
+    pub fn down(&mut self) {
+        if let Some(pos) = self.next_new_line() {
+            let col = self.gap - self.ln_start();
+
+            let new_end = match pos + col {
+                v if v > BUFFER_LIMIT => BUFFER_LIMIT,
+                v                     => v
+            };
+
+            let size = new_end - self.end;
+            let new_gap = self.gap + size;
+
+            self.bytes.copy_within(self.end + 1..=new_end, self.gap);            
+
+            self.gap = new_gap;
+            self.end = new_end;
+        }
+    }    
+
+
     pub fn del_right(&mut self) {
         if self.end < BUFFER_LIMIT {
             self.end += 1;

@@ -28,7 +28,6 @@ impl Editor {
         stdout.write(ansi::CLEAR)?;
 
         let term_info = self.term.info()?;
-        let buffer_width = term_info.screen_size.width - settings::GUTTER_WIDTH;
 
         let start_pos = Position { x: 1, y: 1 };
 
@@ -40,7 +39,6 @@ impl Editor {
         stdout.flush()?;
         
         let mut buffer: CharBuffer = [0; 4];
-        let empty: &[u8] = &[];
         let mut gap_buffer = GapBuffer::new();
 
         loop {
@@ -55,8 +53,8 @@ impl Editor {
             match code {
                 keys::CTRL_Q    => { break; },
                 keys::CR        => gap_buffer.insert(keys::LINE_FEED),
-                keys::UP        => { },
-                keys::DOWN      => { },
+                keys::UP        => gap_buffer.up(),
+                keys::DOWN      => gap_buffer.down(),
                 keys::RIGHT     => gap_buffer.right(),
                 keys::LEFT      => gap_buffer.left(),
                 keys::HTAB      => { },
