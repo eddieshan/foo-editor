@@ -1,3 +1,5 @@
+use std::cmp;
+use std::ops::Range;
 use std::io::Write;
 
 use crate::{settings, keys};
@@ -64,40 +66,38 @@ impl GapBuffer {
         0
     }
 
-    fn next_new_line(&mut self) -> Option<usize> {
-        let mut pos = self.end + 1;
-        while pos < BUFFER_SIZE {
+    fn find_lf<T: Iterator<Item = usize>>(&self, span: T, lf_pos:  &mut [usize; 2]) -> usize {
+        let mut lf_count = 0;
+
+        for pos in span {
+            lf_pos[lf_count] = pos;
             if self.bytes[pos] == keys::LINE_FEED {
-                return Some(pos)
+                lf_count += 1;
+                if lf_count == 2 {
+                    return lf_count;
+                }
             }
-            pos += 1;
         }
-        None
+
+        lf_count
     }
 
     pub fn up(&mut self) {
-        let mut pos = self.gap;
-        let mut ln_count = 0;
-        let mut col_offset = [0_usize; 2];
+        let mut lf_pos = [0_usize; 2];  
+        let lf_count = self.find_lf((0..self.gap).rev(), &mut lf_pos);
 
-        while pos > 0 && ln_count < 2 {
-
-            pos -= 1;
-
-            if self.bytes[pos] == keys::LINE_FEED {
-                ln_count += 1;
-            } else {
-                col_offset[ln_count] += 1;
-            }
-        }
-
-        if ln_count > 0 {
-            let new_gap = match pos {
-                0 => pos + col_offset[0],
-                _ => pos + col_offset[0] + 1
+        if lf_count > 0 {
+            let col = match lf_count {
+                1 => self.gap - lf_pos[0] - 1,
+                _ => self.gap - lf_pos[0]
             };
+            let col_above = lf_pos[0] - lf_pos[1];
+
+            let new_col = cmp::min(col, col_above);
+            let new_gap = lf_pos[1] + new_col;
             let size = self.gap - new_gap;
             let new_end = self.end - size;
+
             self.bytes.copy_within(new_gap..self.gap, new_end + 1);
             self.gap = new_gap;
             self.end = new_end;
@@ -105,24 +105,23 @@ impl GapBuffer {
     }
 
     pub fn down(&mut self) {
-        if let Some(pos) = self.next_new_line() {
+        let mut lf_pos = [0_usize; 2];
+        let lf_count = self.find_lf(self.end + 1..BUFFER_SIZE, &mut lf_pos);
+
+        if lf_count > 0 {
             let col = self.gap - self.ln_start();
+            let col_below = lf_pos[1] - lf_pos[0];
 
-            let new_end = match pos + col {
-                v if v > BUFFER_LIMIT => BUFFER_LIMIT,
-                v                     => v
-            };
-
+            let new_col = cmp::min(col, col_below);
+            let new_end = lf_pos[0] + new_col;
             let size = new_end - self.end;
-            let new_gap = self.gap + size;
+            let new_gap = self.gap + size;            
 
-            self.bytes.copy_within(self.end + 1..=new_end, self.gap);            
-
+            self.bytes.copy_within(self.end + 1..=new_end, self.gap);
             self.gap = new_gap;
             self.end = new_end;
         }
-    }    
-
+    }
 
     pub fn del_right(&mut self) {
         if self.end < BUFFER_LIMIT {
