@@ -1,5 +1,4 @@
 use std::cmp;
-use std::ops::Range;
 use std::io::Write;
 
 use crate::{settings, keys};
@@ -53,18 +52,61 @@ impl GapBuffer {
         }
     }
 
-    fn ln_start(&mut self) -> usize {
+    fn find_ln_start(&self) -> usize {
         let mut pos = self.gap;
         while pos > 0 {
             pos -= 1;
 
             if self.bytes[pos] == keys::LINE_FEED {
-                return pos + 1;
+                return match pos {
+                    0 => 0,
+                    _ => pos + 1
+                }
             }
         }
 
         0
     }
+
+    pub fn ln_start(&mut self) {
+        let new_gap = self.find_ln_start();
+        let delta = self.gap - new_gap;
+        let new_end = self.end - delta;
+
+        self.bytes.copy_within(new_gap..self.gap, new_end + 1);
+
+        self.gap = new_gap;
+        self.end = new_end;
+    }
+
+    fn find_ln_end(&self) -> usize {
+        let mut pos = self.end;
+        while pos < BUFFER_LIMIT {
+            pos += 1;
+
+            if self.bytes[pos] == keys::LINE_FEED {
+                return match pos {
+                    0 => 0,
+                    _ => pos - 1
+                }
+            }
+        }
+
+        BUFFER_LIMIT
+    }
+
+    pub fn ln_end(&mut self) {
+        let new_end = self.find_ln_end();
+        let delta = new_end - self.end;
+        let new_gap = self.gap + delta;
+
+        //panic!("Gap: {}, end: {}, new gap: {}, new end: {}", self.gap, self.end, new_gap, new_end);
+        self.bytes.copy_within(self.end + 1..=new_end, self.gap);
+
+        self.gap = new_gap;
+        self.end = new_end;
+    }    
+
 
     fn find_lf<T: Iterator<Item = usize>>(&self, span: T, lf_pos:  &mut [usize; 2]) -> usize {
         let mut lf_count = 0;
@@ -109,7 +151,7 @@ impl GapBuffer {
         let lf_count = self.find_lf(self.end + 1..BUFFER_SIZE, &mut lf_pos);
 
         if lf_count > 0 {
-            let col = self.gap - self.ln_start();
+            let col = self.gap - self.find_ln_start();
             let col_below = lf_pos[1] - lf_pos[0];
 
             let new_col = cmp::min(col, col_below);

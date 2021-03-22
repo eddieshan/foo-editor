@@ -30,7 +30,7 @@ impl Editor {
 
         let start_pos = Position { x: 1, y: 1 };
 
-        gutter::render(&mut stdout, start_pos.y, 1, &term_info);
+        gutter::render(&mut stdout, start_pos.y, 1);
         status_bar::render(&mut stdout, &start_pos, &term_info);
 
         stdout.write(theme::HOME)?;
@@ -57,8 +57,8 @@ impl Editor {
                 keys::RIGHT     => gap_buffer.right(),
                 keys::LEFT      => gap_buffer.left(),
                 keys::HTAB      => { },
-                keys::LN_START  => { },
-                keys::LN_END    => { },
+                keys::LN_START  => gap_buffer.ln_start(),
+                keys::LN_END    => gap_buffer.ln_end(),
                 ansi::DEL       => gap_buffer.del_right(),
                 keys::BS        => gap_buffer.del_left(),
                 _               => {
@@ -74,7 +74,7 @@ impl Editor {
             
             let (total_ln, lncol) = gap_buffer.dump(&mut stdout);
             
-            gutter::render(&mut stdout, lncol.y, total_ln, &term_info)?;
+            gutter::render(&mut stdout, lncol.y, total_ln)?;
             status_bar::render(&mut stdout, &lncol, &term_info);
 
             let screen_pos = Position { x: lncol.x + settings::GUTTER_WIDTH, y: lncol.y };
@@ -92,7 +92,7 @@ impl Drop for Editor {
     fn drop(&mut self) {
         let mut stdout = io::stdout();
         stdout.write(ansi::RESET);
-        stdout.write(ansi::CLEAR);
+        //stdout.write(ansi::CLEAR);
         stdout.flush();
         self.term.restore();
     }

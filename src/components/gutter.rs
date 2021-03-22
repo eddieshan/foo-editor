@@ -1,9 +1,8 @@
 use std::io::{Stdout, Result, Write};
 
 use crate::{ansi, theme};
-use crate::core::*;
 
-pub fn render(stdout: &mut Stdout, ln: usize, total_ln: usize, info: &TermInfo) -> Result<()> {
+pub fn render(stdout: &mut Stdout, ln: usize, total_ln: usize) -> Result<()> {
     stdout.write(ansi::HOME)?;
     stdout.write(theme::GUTTER_DEFAULT)?;
 
