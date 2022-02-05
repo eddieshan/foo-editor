@@ -2,7 +2,7 @@ use std::io::{Result};
 use crate::core::TermInfo;
 
 pub trait Term {
-    fn restore(&self);
+    fn restore(&self) -> Result<()>;
     fn info(&self) -> Result<TermInfo>;
 }
 

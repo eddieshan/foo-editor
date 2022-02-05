@@ -1,5 +1,5 @@
 use std::cmp;
-use std::io::Write;
+use std::io::{Result, Write};
 
 use crate::{settings, keys};
 use crate::core::Position;
@@ -100,7 +100,6 @@ impl GapBuffer {
         let delta = new_end - self.end;
         let new_gap = self.gap + delta;
 
-        //panic!("Gap: {}, end: {}, new gap: {}, new end: {}", self.gap, self.end, new_gap, new_end);
         self.bytes.copy_within(self.end + 1..=new_end, self.gap);
 
         self.gap = new_gap;
@@ -181,35 +180,35 @@ impl GapBuffer {
         &self.bytes[0..self.gap]
     }
 
-    fn dump_lines<T: Write>(&self, writer: &mut T, from: usize, to: usize) -> (usize, usize)  {
+    fn dump_lines(&self, writer: &mut impl Write, from: usize, to: usize) -> Result<(usize, usize)> {
         let mut ln_start = from;
         let mut ln_count = 0;
         for i in from..to {
             if self.bytes[i] == keys::LINE_FEED {
-                writer.write(&self.bytes[ln_start..i]);
-                writer.write(settings::LINE_FEED);
+                writer.write(&self.bytes[ln_start..i])?;
+                writer.write(settings::LINE_FEED)?;
                 ln_count += 1;
                 ln_start = i + 1;
             }
         }
 
-        writer.write(&self.bytes[ln_start..to]);
+        writer.write(&self.bytes[ln_start..to])?;
 
-        (ln_count, to - ln_start)
+        Ok((ln_count, to - ln_start))
     }
 
-    pub fn dump<T: Write>(&self, writer: &mut T) -> (usize, Position)  {
-        let (gap_ln, gap_col) = self.dump_lines(writer, 0, self.gap);
+    pub fn dump(&self, writer: &mut impl Write) -> Result<(usize, Position)> {
+        let (gap_ln, gap_col) = self.dump_lines(writer, 0, self.gap)?;
         let lncol = Position { x: gap_col + 1, y: gap_ln + 1 };
 
         let total_ln = match self.end < BUFFER_LIMIT {
             true => {
-                let (end_ln, _) = self.dump_lines(writer, self.end + 1, BUFFER_SIZE);
+                let (end_ln, _) = self.dump_lines(writer, self.end + 1, BUFFER_SIZE)?;
                 gap_ln + end_ln + 1
             },
             false => gap_ln + 1
         };
 
-        (total_ln, lncol)
+        Ok((total_ln, lncol))
     }
 }
