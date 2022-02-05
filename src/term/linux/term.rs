@@ -77,7 +77,9 @@ fn get_window_size() -> Result<Size> {
 
 impl Term for LinuxTerm {
     fn restore(&self) {
-        
+        unsafe {
+            tcsetattr(STDIN_FILENO, TCSAFLUSH, &self.state);
+        }
     }
 
     fn info(&self) -> Result<TermInfo> {

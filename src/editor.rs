@@ -92,6 +92,7 @@ impl<'a> Drop for Editor<'a> {
     fn drop(&mut self) {
         let mut stdout = io::stdout();
         stdout.write(ansi::RESET);
+        stdout.write(ansi::CLEAR);
         stdout.flush();
         self.term.restore();
     }
