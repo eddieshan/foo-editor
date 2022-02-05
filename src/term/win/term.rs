@@ -3,6 +3,7 @@ use std::convert::TryFrom;
 use std::io::{Result, Error};
 
 use crate::core::*;
+use crate::term::Term;
 use crate::win::bindings;
 use crate::win::bindings::{DWORD, HANDLE, COORD, SMALL_RECT, CONSOLE_SCREEN_BUFFER_INFO};
 
@@ -26,18 +27,18 @@ impl TryFrom<COORD> for Position {
     } 
 }
 
-pub struct Term {
-    std_in: (HANDLE, DWORD),
-    std_out: (HANDLE, DWORD)
+pub struct WinTerm {
+    std_in: (u64, u64),
+    std_out: (u64, u64)
 }
 
-impl Term {
-    pub fn restore(&self) {
+impl Term for WinTerm {
+    fn restore(&self) {
         set_mode(self.std_in.0, self.std_in.1);
         set_mode(self.std_out.0, self.std_out.1);
     }
 
-    pub fn info(&self) -> Result<TermInfo> {
+    fn info(&self) -> Result<TermInfo> {
         let mut buffer_info = CONSOLE_SCREEN_BUFFER_INFO  { 
             dwSize: COORD { X: 0, Y: 0 },
             dwCursorPosition: COORD { X: 0, Y: 0 },
@@ -60,7 +61,7 @@ impl Term {
     }
 }
 
-fn get_mode(handle: HANDLE) -> Result<u32> {
+fn get_mode(handle: HANDLE) -> Result<DWORD> {
     let mut console_mode = 0;
     unsafe {
         if bindings::GetConsoleMode(handle, &mut console_mode) == 0 {
@@ -70,7 +71,7 @@ fn get_mode(handle: HANDLE) -> Result<u32> {
     Ok(console_mode)
 }
 
-fn set_mode(handle: HANDLE, console_mode: u32) -> Result<()> {
+fn set_mode(handle: HANDLE, console_mode: DWORD) -> Result<()> {
     unsafe {
         if bindings::SetConsoleMode(handle, console_mode) == 0 {
             return Err(Error::last_os_error());
@@ -123,11 +124,11 @@ fn ansi_output_mode(current_mode: DWORD) -> DWORD {
     current_mode | bindings::ENABLE_VIRTUAL_TERMINAL_PROCESSING
 }
 
-pub fn configure() -> Result<Term> {
+pub fn configure() -> Result<WinTerm> {
     let std_in = configure_device(CONSOLE_IN, raw_vt_input_mode)?;
     let std_out = configure_device(CONSOLE_OUT, ansi_output_mode)?;
 
-    Ok(Term {
+    Ok(WinTerm {
         std_in: std_in,
         std_out: std_out
     })
