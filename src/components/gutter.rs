@@ -1,24 +1,24 @@
-use std::io::{Stdout, Result, Write};
+use std::io::{Result, Write};
 
 use crate::{ansi, theme};
 
-pub fn render(stdout: &mut Stdout, ln: usize, total_ln: usize) -> Result<()> {
-    stdout.write(ansi::HOME)?;
-    stdout.write(theme::GUTTER_DEFAULT)?;
+pub fn render(buffer: &mut impl Write, ln: usize, total_ln: usize) -> Result<()> {
+    buffer.write(ansi::HOME)?;
+    buffer.write(theme::GUTTER_DEFAULT)?;
 
     for i in 1..=total_ln {
         if i == ln {
-            stdout.write(theme::GUTTER_HIGHLIGHT)?;
+            buffer.write(theme::GUTTER_HIGHLIGHT)?;
             print!("{:>3} ", i);
-            stdout.write(theme::GUTTER_DEFAULT)?;
+            buffer.write(theme::GUTTER_DEFAULT)?;
         } else {
             print!("{:>3} ", i);
         }            
         
-        stdout.write(ansi::NEXT_LINE)?;
+        buffer.write(ansi::NEXT_LINE)?;
     }
 
-    stdout.write(ansi::RESET)?;
+    buffer.write(ansi::RESET)?;
 
     Ok(())
 }

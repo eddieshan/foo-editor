@@ -1,4 +1,4 @@
-use std::io::{Write, Stdout};
+use std::io::{Write};
 
 pub const SEQ: &[u8] = b"\x1b[";
 
@@ -17,8 +17,8 @@ pub const STRIKETROUGH: &[u8] = b"\x1b[9m";
 
 pub const DEL: u32 = 0x1b5b337e;
 
-pub fn pos(row: usize, col: usize, stdout: &mut Stdout) {
-    stdout.write(SEQ);
+pub fn pos(row: usize, col: usize, buffer: &mut impl Write) {
+    buffer.write(SEQ);
     print!("{};{}", row, col);
-    stdout.write(POS);
+    buffer.write(POS);
 }
