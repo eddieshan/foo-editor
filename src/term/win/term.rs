@@ -16,11 +16,15 @@ impl TryFrom<COORD> for Size {
     } 
 }
 
-// Stores the handles for input and output channels and a backup of 
-// the original console modes for each of them
+// A pair of: 
+// - handle to a term stream,
+// - the original attributes for that stream.
+pub type StreamState = (HANDLE, DWORD);
+
+// Stores the state for input and output streams.
 pub struct WinTerm {
-    std_in: (HANDLE, DWORD),
-    std_out: (HANDLE, DWORD)
+    std_in: StreamState,
+    std_out: StreamState
 }
 
 impl Term for WinTerm {
@@ -53,21 +57,22 @@ impl Term for WinTerm {
 
 fn get_mode(handle: HANDLE) -> Result<DWORD> {
     let mut console_mode = 0;
+
     unsafe {
-        if GetConsoleMode(handle, &mut console_mode) == 0 {
-            return Err(Error::last_os_error());
+        match GetConsoleMode(handle, &mut console_mode)  {
+            0 => Err(Error::last_os_error()),
+            _ => Ok(console_mode)
         }
     }
-    Ok(console_mode)
 }
 
 fn set_mode(handle: HANDLE, console_mode: DWORD) -> Result<()> {
     unsafe {
-        if SetConsoleMode(handle, console_mode) == 0 {
-            return Err(Error::last_os_error());
+        match SetConsoleMode(handle, console_mode) {
+            0 => Err(Error::last_os_error()),
+            _ => Ok(())
         }
     }
-    Ok(())
 }
 
 fn device_handle(device_name: &str) -> HANDLE {
@@ -88,7 +93,7 @@ fn device_handle(device_name: &str) -> HANDLE {
     handle
 }
 
-fn configure_device(device_name: &str, new_mode: fn(DWORD) -> DWORD) -> Result<(HANDLE, DWORD)> {
+fn configure_device(device_name: &str, new_mode: fn(DWORD) -> DWORD) -> Result<StreamState> {
     let handle = device_handle(device_name);
     let current_mode = get_mode(handle)?;
 
