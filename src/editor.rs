@@ -41,10 +41,7 @@ impl<'a> Editor<'a> {
         let mut gap_buffer = GapBuffer::new();
 
         loop {
-            buffer[0] = 0;
-            buffer[1] = 0;
-            buffer[2] = 0;
-            buffer[3] = 0;
+            buffer.fill(0);
    
             let length = stdin.read(&mut buffer)?;
             let code = u32::from_be_bytes(buffer); // Conversion has to be big endian to match the input sequence.
@@ -88,12 +85,19 @@ impl<'a> Editor<'a> {
     }
 }
 
+fn reset() -> Result<()> {
+    let mut stdout = io::stdout();
+    stdout.write(ansi::RESET)?;
+    stdout.write(ansi::CLEAR)?;
+    stdout.flush()
+}
+
 impl<'a> Drop for Editor<'a> {
     fn drop(&mut self) {
-        let mut stdout = io::stdout();
-        stdout.write(ansi::RESET);
-        stdout.write(ansi::CLEAR);
-        stdout.flush();
-        self.term.restore();
+        // TODO: how to handle errors properly in destructor?
+        // Does it make sense to log errors in reset or restore?
+        // Since a Result cannot be returned in Drop, is it better to 
+        // restore state in another place that allows error propagation.
+        reset().and_then(|()| self.term.restore());
     }
 }

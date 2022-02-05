@@ -63,7 +63,7 @@ impl termios {
 }
 
 fn get_window_size() -> Result<Size> {
-    let mut ws = winsize {
+    let ws = winsize {
         ws_row: 0,
         ws_col: 0,
         ws_xpixel: 0,
@@ -81,8 +81,9 @@ fn get_window_size() -> Result<Size> {
 }
 
 impl Term for LinuxTerm {
-    fn restore(&self) {
-        set_term_attr(&self.state);
+    fn restore(&self) -> Result<()> {
+        set_term_attr(&self.state)?;
+        Ok(())
     }
 
     fn info(&self) -> Result<TermInfo> {
