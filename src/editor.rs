@@ -5,17 +5,17 @@ use crate::core::Position;
 use crate::{ansi, keys, theme, settings};
 use crate::gap_buffer::GapBuffer;
 use crate::components::{status_bar, gutter};
-use crate::win::term::Term;
+use crate::term::Term;
 
 type CharBuffer = [u8; 4];
 
-pub struct Editor {
-    term: Term
+pub struct Editor<'a> {
+    term: &'a (dyn Term + 'a)
 }
 
-impl Editor {
+impl<'a> Editor<'a> {
 
-    pub fn new(term: Term) -> Self {
+    pub fn new(term: &'a impl Term) -> Self {
         Editor { term: term }
     }
 
@@ -88,11 +88,10 @@ impl Editor {
     }
 }
 
-impl Drop for Editor {
+impl<'a> Drop for Editor<'a> {
     fn drop(&mut self) {
         let mut stdout = io::stdout();
         stdout.write(ansi::RESET);
-        //stdout.write(ansi::CLEAR);
         stdout.flush();
         self.term.restore();
     }
