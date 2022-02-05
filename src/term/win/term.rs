@@ -17,16 +17,6 @@ impl TryFrom<COORD> for Size {
     } 
 }
 
-impl TryFrom<COORD> for Position {
-    type Error = Error;
-    fn try_from(coord: COORD) -> std::result::Result<Self, Self::Error> {
-        match (usize::try_from(coord.X), usize::try_from(coord.Y)) {
-            (Ok(x), Ok(y)) => Ok(Position { x: x, y: y }),
-            _              => Err(Error::last_os_error())
-        }
-    } 
-}
-
 pub struct WinTerm {
     std_in: (u64, u64),
     std_out: (u64, u64)
@@ -55,8 +45,7 @@ impl Term for WinTerm {
     
         Ok(TermInfo {
             buffer_size: Size::try_from(buffer_info.dwSize)?,
-            screen_size: Size::try_from(buffer_info.dwMaximumWindowSize)?,
-            cursor: Position::try_from(buffer_info.dwCursorPosition)?,
+            screen_size: Size::try_from(buffer_info.dwMaximumWindowSize)?
         })
     }
 }

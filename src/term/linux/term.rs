@@ -88,8 +88,7 @@ impl Term for LinuxTerm {
 
         Ok(TermInfo {
             buffer_size: window_size.clone(),
-            screen_size: window_size.clone(),
-            cursor: Position { x: 0, y: 0}
+            screen_size: window_size.clone()
         })
     }
 }
