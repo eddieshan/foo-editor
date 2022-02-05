@@ -98,6 +98,6 @@ impl<'a> Drop for Editor<'a> {
         // Does it make sense to log errors in reset or restore?
         // Since a Result cannot be returned in Drop, is it better to 
         // restore state in another place that allows error propagation.
-        reset().and_then(|()| self.term.restore());
+        let _ = reset().and_then(|()| self.term.restore());
     }
 }
