@@ -12,9 +12,13 @@ impl TryFrom<winsize> for Size {
             (Ok(w), Ok(h)) => Ok(Size { width: w, height: h }),
             _              => Err(Error::last_os_error())
         }
-    } 
+    }
 }
 
+// LinuxTerm only contains a backup of the termios state before
+// setting the console in raw mode. termios could have been used
+// directly to avoid an extra level of indirection but this is 
+// cleaner and allows better separation from the OS bindings.
 pub struct LinuxTerm {
     state: termios
 }
@@ -67,25 +71,28 @@ fn get_window_size() -> Result<Size> {
     };
 
     unsafe {
-        if ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0 {
-            Err(Error::new(ErrorKind::Other, ""))
-        } else {
-            Size::try_from(ws)
-        }    
+        let result = ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);
+        match (result, ws.ws_col) {
+            (-1, _) => Err(Error::new(ErrorKind::Other, "")),
+            (_, 0)  => Err(Error::new(ErrorKind::Other, "")),
+            _       => Size::try_from(ws)
+        }
     }
 }
 
 impl Term for LinuxTerm {
     fn restore(&self) {
-        unsafe {
-            tcsetattr(STDIN_FILENO, TCSAFLUSH, &self.state);
-        }
+        set_term_attr(&self.state);
     }
 
     fn info(&self) -> Result<TermInfo> {
 
         let window_size = get_window_size()?;
 
+        // TODO: for now, for Linux, it is assumed that buffer size will be the 
+        // same as window size. In Windows they are different values, retrieved
+        // with separate sys calls. Consider simplifying this and use only the 
+        // window size.
         Ok(TermInfo {
             buffer_size: window_size.clone(),
             screen_size: window_size.clone()
@@ -93,33 +100,45 @@ impl Term for LinuxTerm {
     }
 }
 
-pub fn configure() -> Result<LinuxTerm> {
+fn get_term_attr() -> Result<termios> {
+
+    let mut state = termios {
+        c_iflag: 0,
+        c_oflag: 0,
+        c_cflag: 0,
+        c_lflag: 0,
+        c_line: 0,
+        c_cc: [0; N_CONTROL_CHAR],
+        c_ispeed: 0,
+        c_ospeed: 0
+    };
 
     unsafe {
-        let mut initial_state = termios {
-            c_iflag: 0,
-            c_oflag: 0,
-            c_cflag: 0,
-            c_lflag: 0,
-            c_line: 0,
-            c_cc: [0; 32],
-            c_ispeed: 0,
-            c_ospeed: 0        
-        };
-
-        if tcgetattr(STDIN_FILENO, &mut initial_state) < 0 {
-            return Err(Error::new(ErrorKind::Other, ""));
+        if tcgetattr(STDIN_FILENO, &mut state) < 0 {
+            Err(Error::new(ErrorKind::Other, ""))
+        } else {
+            Ok(state)
         }
-        
-        let raw_term_state = termios::raw_from(&initial_state);
-    
-        // Flush terminal and set raw mode.
-        if tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw_term_state) < 0 {
-            return Err(Error::new(ErrorKind::Other, ""));
-        }
-
-        Ok(LinuxTerm {
-            state: initial_state
-        })
     }
+}
+
+fn set_term_attr(state: &termios) -> Result<()> {
+    unsafe {
+        if tcsetattr(STDIN_FILENO, TCSAFLUSH, state) < 0 {
+            Err(Error::new(ErrorKind::Other, ""))
+        } else {
+            Ok(())
+        }
+    }
+}
+
+pub fn configure() -> Result<LinuxTerm> {
+
+    let initial_term_state = get_term_attr()?;
+    let raw_term_state = termios::raw_from(&initial_term_state);
+    set_term_attr(&raw_term_state)?;
+
+    Ok(LinuxTerm {
+        state: initial_term_state
+    })
 }

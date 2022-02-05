@@ -19,5 +19,5 @@ mod win;
 
 #[cfg(target_os = "windows")]
 pub fn configure() -> Result<impl Term> {
-    windows::term::configure()
+    win::term::configure()
 }
