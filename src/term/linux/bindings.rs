@@ -32,21 +32,11 @@ pub struct winsize {
 }
 
 // Input mode flags.
-//pub const IGNBRK:  tcflag_t = 0o000001;
 pub const BRKINT:  tcflag_t = 0o000002;
-//pub const IGNPAR:  tcflag_t = 0o000004;
-//pub const PARMRK:  tcflag_t = 0o000010;
 pub const INPCK:   tcflag_t = 0o000020;
 pub const ISTRIP:  tcflag_t = 0o000040;
-//pub const INLCR:   tcflag_t = 0o000100;
-//pub const IGNCR:   tcflag_t = 0o000200;
 pub const ICRNL:   tcflag_t = 0o000400;
-//pub const IUCLC:   tcflag_t = 0o001000;
 pub const IXON:    tcflag_t = 0o002000;
-//pub const IXANY:   tcflag_t = 0o004000;
-//pub const IXOFF:   tcflag_t = 0o010000;
-//pub const IMAXBEL: tcflag_t = 0o020000;
-//pub const IUTF8:   tcflag_t = 0o040000;
 
 // Output mode flags.
 pub const OPOST:   tcflag_t = 0o000001;

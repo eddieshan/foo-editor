@@ -11,6 +11,5 @@ pub struct Position {
 
 pub struct TermInfo {
     pub buffer_size: Size,
-    pub screen_size: Size,
-    pub cursor: Position
+    pub screen_size: Size
 }
