@@ -14,9 +14,9 @@ pub fn render(buffer: &mut impl Write, cursor: &Position, info: &TermInfo) -> Re
     let last_col = info.screen_size.width + 1;
     let start_col = last_col - status.len();
 
-    ansi::pos(info.screen_size.height, 0, buffer);
+    ansi::pos(info.screen_size.height, 0, buffer)?;
     buffer.write(&WHITESPACE_LINE[0..info.screen_size.width])?;
-    ansi::pos(info.screen_size.height, start_col, buffer);
+    ansi::pos(info.screen_size.height, start_col, buffer)?;
     print!("{}", status);
 
     buffer.write(ansi::RESET)?;

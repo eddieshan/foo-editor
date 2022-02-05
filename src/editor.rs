@@ -30,8 +30,8 @@ impl<'a> Editor<'a> {
 
         let start_pos = Position { x: 1, y: 1 };
 
-        gutter::render(&mut stdout, start_pos.y, 1);
-        status_bar::render(&mut stdout, &start_pos, &term_info);
+        gutter::render(&mut stdout, start_pos.y, 1)?;
+        status_bar::render(&mut stdout, &start_pos, &term_info)?;
 
         stdout.write(theme::HOME)?;
 
@@ -69,14 +69,14 @@ impl<'a> Editor<'a> {
             stdout.write(theme::HOME)?;
             stdout.write(theme::TEXT_DEFAULT)?;
             
-            let (total_ln, lncol) = gap_buffer.dump(&mut stdout);
+            let (total_ln, lncol) = gap_buffer.dump(&mut stdout)?;
             
             gutter::render(&mut stdout, lncol.y, total_ln)?;
-            status_bar::render(&mut stdout, &lncol, &term_info);
+            status_bar::render(&mut stdout, &lncol, &term_info)?;
 
             let screen_pos = Position { x: lncol.x + settings::GUTTER_WIDTH, y: lncol.y };
 
-            ansi::pos(screen_pos.y, screen_pos.x, &mut stdout);            
+            ansi::pos(screen_pos.y, screen_pos.x, &mut stdout)?;
     
             stdout.flush()?;
         }

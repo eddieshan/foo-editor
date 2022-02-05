@@ -3,7 +3,6 @@ mod ansi;
 mod keys;
 mod settings;
 mod theme;
-mod cursor;
 
 mod term;
 mod components;
