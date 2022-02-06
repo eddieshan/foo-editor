@@ -1,5 +1,10 @@
 use std::io::{Result};
-use crate::core::TermInfo;
+use crate::core::geometry::Size;
+
+pub struct TermInfo {
+    pub buffer_size: Size,
+    pub screen_size: Size
+}
 
 pub trait Term {
     fn restore(&self) -> Result<()>;
@@ -8,16 +13,16 @@ pub trait Term {
 
 #[cfg(target_os = "linux")]
 mod linux;
-
 #[cfg(target_os = "linux")]
-pub fn configure() -> Result<impl Term> {
-    linux::term::configure()
-}
+use linux::term::os_configure;
 
 #[cfg(target_os = "windows")]
 mod win;
-
 #[cfg(target_os = "windows")]
-pub fn configure() -> Result<impl Term> {
-    win::term::configure()
+use win::term::os_configure;
+
+pub fn configure() -> Result<impl Term> {    
+    os_configure()
 }
+
+pub mod vt100;
