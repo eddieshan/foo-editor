@@ -24,3 +24,5 @@ use win::term::os_configure;
 pub fn configure() -> Result<impl Term> {    
     os_configure()
 }
+
+pub mod vt100;

@@ -1,5 +1,4 @@
 mod core;
-mod ansi;
 mod keys;
 mod settings;
 mod theme;

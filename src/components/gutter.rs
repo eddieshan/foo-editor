@@ -1,10 +1,11 @@
 use std::io::{Result, Write};
 
-use crate::{ansi, theme};
+use crate::theme;
+use crate::term::vt100;
 use crate::core::convert;
 
 pub fn render(buffer: &mut impl Write, ln: usize, total_ln: usize) -> Result<()> {
-    buffer.write(ansi::HOME)?;
+    buffer.write(vt100::HOME)?;
     buffer.write(theme::GUTTER_DEFAULT)?;
 
     let mut line_number = [b' '; 3];
@@ -19,10 +20,10 @@ pub fn render(buffer: &mut impl Write, ln: usize, total_ln: usize) -> Result<()>
             buffer.write(&line_number)?;
         }            
         
-        buffer.write(ansi::NEXT_LINE)?;
+        buffer.write(vt100::NEXT_LINE)?;
     }
 
-    buffer.write(ansi::RESET)?;
+    buffer.write(vt100::RESET)?;
 
     Ok(())
 }

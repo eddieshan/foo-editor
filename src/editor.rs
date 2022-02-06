@@ -2,10 +2,10 @@ use std::io;
 use std::io::{Result, Read, Write};
 
 use crate::core::geometry::Position;
-use crate::{ansi, keys, theme, settings};
+use crate::{keys, theme, settings};
 use crate::gap_buffer::GapBuffer;
 use crate::components::{status_bar, gutter};
-use crate::term::Term;
+use crate::term::*;
 
 type CharBuffer = [u8; 4];
 
@@ -24,7 +24,7 @@ impl<'a> Editor<'a> {
         let mut stdout = io::stdout();
         let mut stdin = io::stdin();
 
-        stdout.write(ansi::CLEAR)?;
+        stdout.write(vt100::CLEAR)?;
 
         let term_info = self.term.info()?;
 
@@ -56,7 +56,7 @@ impl<'a> Editor<'a> {
                 keys::HTAB      => { },
                 keys::LN_START  => gap_buffer.ln_start(),
                 keys::LN_END    => gap_buffer.ln_end(),
-                ansi::DEL       => gap_buffer.del_right(),
+                keys::DEL       => gap_buffer.del_right(),
                 keys::BS        => gap_buffer.del_left(),
                 _               => {
                     if length == 1 {
@@ -65,7 +65,7 @@ impl<'a> Editor<'a> {
                 }
             };
 
-            stdout.write(ansi::CLEAR)?;
+            stdout.write(vt100::CLEAR)?;
             stdout.write(theme::HOME)?;
             stdout.write(theme::TEXT_DEFAULT)?;
             
@@ -76,7 +76,7 @@ impl<'a> Editor<'a> {
 
             let screen_pos = Position { x: lncol.x + settings::GUTTER_WIDTH, y: lncol.y };
 
-            ansi::pos(screen_pos.y, screen_pos.x, &mut stdout)?;
+            vt100::pos(screen_pos.y, screen_pos.x, &mut stdout)?;
     
             stdout.flush()?;
         }
@@ -87,8 +87,8 @@ impl<'a> Editor<'a> {
 
 fn reset() -> Result<()> {
     let mut stdout = io::stdout();
-    stdout.write(ansi::RESET)?;
-    stdout.write(ansi::CLEAR)?;
+    stdout.write(vt100::RESET)?;
+    stdout.write(vt100::CLEAR)?;
     stdout.flush()
 }
 

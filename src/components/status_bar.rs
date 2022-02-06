@@ -2,8 +2,8 @@ use std::io::{Result, Write};
 
 use crate::core::geometry::Position;
 use crate::core::convert;
-use crate::term::TermInfo;
-use crate::{ansi, keys, theme};
+use crate::term::*;
+use crate::{keys, theme};
 
 const MAX_LINE_WIDTH: usize = 200;
 const WHITESPACE_LINE: [u8; MAX_LINE_WIDTH] = [keys::WHITESPACE; MAX_LINE_WIDTH];
@@ -18,13 +18,13 @@ pub fn render(buffer: &mut impl Write, cursor: &Position, info: &TermInfo) -> Re
     let last_col = info.screen_size.width + 1;
     let start_col = last_col - caption.len();
 
-    ansi::pos(info.screen_size.height, 0, buffer)?;
+    vt100::pos(info.screen_size.height, 0, buffer)?;
     buffer.write(&WHITESPACE_LINE[0..info.screen_size.width])?;
-    ansi::pos(info.screen_size.height, start_col, buffer)?;
+    vt100::pos(info.screen_size.height, start_col, buffer)?;
 
     buffer.write(&caption)?;
 
-    buffer.write(ansi::RESET)?;
+    buffer.write(vt100::RESET)?;
     
     Ok(())
 }
