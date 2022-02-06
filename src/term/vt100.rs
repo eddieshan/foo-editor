@@ -10,12 +10,18 @@ pub const POS: &[u8] = b"H";
 pub const NEXT_LINE: &[u8] = b"\x1b[1E";
 pub const HOME: &[u8] = b"\x1b[H";
 
-pub fn pos(row: usize, col: usize, buffer: &mut impl Write) -> Result<()> {
-    buffer.write(SEQ)?;
-    let mut pos_seq: [u8; 7] = [0, 0, 0, b';', 0, 0, 0];
-    convert::to_slice_3(row, &mut pos_seq[0..3])?;
-    convert::to_slice_3(col, &mut pos_seq[4..7])?;
-    buffer.write(&pos_seq)?;
-    buffer.write(POS)?;
-    Ok(())
+pub trait Vt100 {
+    fn pos(&mut self, row: usize, col: usize) -> Result<()>;
+}
+
+impl<T> Vt100 for T where T: Write {
+    fn pos(&mut self, row: usize, col: usize) -> Result<()> {
+        self.write(SEQ)?;
+        let mut pos_seq: [u8; 7] = [0, 0, 0, b';', 0, 0, 0];
+        convert::to_slice_3(row, &mut pos_seq[0..3])?;
+        convert::to_slice_3(col, &mut pos_seq[4..7])?;
+        self.write(&pos_seq)?;
+        self.write(POS)?;
+        Ok(())
+    }
 }

@@ -3,6 +3,7 @@ use std::io::{Result, Write};
 use crate::core::geometry::Position;
 use crate::core::convert;
 use crate::term::*;
+use crate::term::vt100::*;
 use crate::{keys, theme};
 
 const MAX_LINE_WIDTH: usize = 200;
@@ -18,9 +19,9 @@ pub fn render(buffer: &mut impl Write, cursor: &Position, info: &TermInfo) -> Re
     let last_col = info.screen_size.width + 1;
     let start_col = last_col - caption.len();
 
-    vt100::pos(info.screen_size.height, 0, buffer)?;
+    buffer.pos(info.screen_size.height, 0)?;
     buffer.write(&WHITESPACE_LINE[0..info.screen_size.width])?;
-    vt100::pos(info.screen_size.height, start_col, buffer)?;
+    buffer.pos(info.screen_size.height, start_col)?;
 
     buffer.write(&caption)?;
 

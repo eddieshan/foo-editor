@@ -6,6 +6,7 @@ use crate::{keys, theme, settings};
 use crate::gap_buffer::GapBuffer;
 use crate::components::{status_bar, gutter};
 use crate::term::*;
+use crate::term::vt100::Vt100;
 
 type CharBuffer = [u8; 4];
 
@@ -76,7 +77,7 @@ impl<'a> Editor<'a> {
 
             let screen_pos = Position { x: lncol.x + settings::GUTTER_WIDTH, y: lncol.y };
 
-            vt100::pos(screen_pos.y, screen_pos.x, &mut stdout)?;
+            stdout.pos(screen_pos.y, screen_pos.x)?;
     
             stdout.flush()?;
         }
