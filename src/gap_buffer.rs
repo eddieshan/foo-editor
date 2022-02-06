@@ -2,7 +2,7 @@ use std::cmp;
 use std::io::{Result, Write};
 
 use crate::{settings, keys};
-use crate::core::Position;
+use crate::core::geometry::Position;
 
 const KB: usize = 1024;
 const BLOCK_SIZE: usize = 10*KB;

@@ -9,7 +9,3 @@ pub struct Position {
     pub y: usize
 }
 
-pub struct TermInfo {
-    pub buffer_size: Size,
-    pub screen_size: Size
-}

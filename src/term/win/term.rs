@@ -2,8 +2,7 @@ use std::ptr;
 use std::convert::TryFrom;
 use std::io::{Result, Error};
 
-use crate::core::*;
-use crate::term::Term;
+use crate::term::*;
 use crate::term::win::bindings::*;
 
 impl TryFrom<COORD> for Size {
@@ -116,7 +115,7 @@ fn ansi_output_mode(current_mode: DWORD) -> DWORD {
 const CONSOLE_IN: &str = "CONIN$\0";
 const CONSOLE_OUT: &str = "CONOUT$\0";
 
-pub fn configure() -> Result<WinTerm> {   
+pub fn os_configure() -> Result<impl Term> {   
     let std_in = configure_device(CONSOLE_IN, raw_vt_input_mode)?;
     let std_out = configure_device(CONSOLE_OUT, ansi_output_mode)?;
 

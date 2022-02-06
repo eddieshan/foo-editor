@@ -1,8 +1,7 @@
 use std::io::{Result, Error, ErrorKind};
 use std::convert::TryFrom;
 
-use crate::core::*;
-use crate::term::Term;
+use crate::term::*;
 use super::bindings::*;
 
 impl TryFrom<winsize> for Size {
@@ -133,7 +132,7 @@ fn set_term_attr(state: &termios) -> Result<()> {
     }
 }
 
-pub fn configure() -> Result<LinuxTerm> {
+pub fn os_configure() -> Result<impl Term> {
 
     let initial_term_state = get_term_attr()?;
     let raw_term_state = termios::raw_from(&initial_term_state);

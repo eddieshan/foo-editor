@@ -1,6 +1,7 @@
 use std::io::{Result, Write};
 
-use crate::core::*;
+use crate::core::geometry::Position;
+use crate::term::TermInfo;
 use crate::{ansi, keys, theme};
 
 const MAX_LINE_WIDTH: usize = 200;

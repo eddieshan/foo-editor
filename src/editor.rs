@@ -1,7 +1,7 @@
 use std::io;
 use std::io::{Result, Read, Write};
 
-use crate::core::Position;
+use crate::core::geometry::Position;
 use crate::{ansi, keys, theme, settings};
 use crate::gap_buffer::GapBuffer;
 use crate::components::{status_bar, gutter};
