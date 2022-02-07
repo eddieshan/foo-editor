@@ -1,5 +1,5 @@
 mod core;
-mod keys;
+mod text;
 mod config;
 
 mod term;
