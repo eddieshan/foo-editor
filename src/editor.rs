@@ -4,7 +4,7 @@ use std::io::{Read, Write};
 use crate::core::geometry::Position;
 use crate::keys;
 use crate::config::{theme, settings};
-use crate::gap_buffer::GapBuffer;
+use crate::buffers::gap_buffer::GapBuffer;
 use crate::components::{status_bar, gutter};
 use crate::term::*;
 use crate::term::vt100::Vt100;
