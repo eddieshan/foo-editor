@@ -1,8 +1,8 @@
 use std::io::{Result, Write};
 
-use crate::theme;
 use crate::term::vt100;
 use crate::core::convert;
+use crate::config::theme;
 
 pub fn render(buffer: &mut impl Write, ln: usize, total_ln: usize) -> Result<()> {
     buffer.write(vt100::HOME)?;

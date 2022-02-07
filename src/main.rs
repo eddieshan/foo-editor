@@ -1,7 +1,6 @@
 mod core;
 mod keys;
-mod settings;
-mod theme;
+mod config;
 
 mod term;
 mod components;

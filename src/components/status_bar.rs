@@ -4,7 +4,8 @@ use crate::core::geometry::Position;
 use crate::core::convert;
 use crate::term::*;
 use crate::term::vt100::*;
-use crate::{keys, theme};
+use crate::keys;
+use crate::config::theme;
 
 const MAX_LINE_WIDTH: usize = 200;
 const WHITESPACE_LINE: [u8; MAX_LINE_WIDTH] = [keys::WHITESPACE; MAX_LINE_WIDTH];

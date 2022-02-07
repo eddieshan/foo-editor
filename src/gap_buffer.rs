@@ -1,7 +1,8 @@
 use std::cmp;
 use std::io::{Result, Write};
 
-use crate::{settings, keys};
+use crate::config::settings;
+use crate::keys;
 use crate::core::geometry::Position;
 
 const KB: usize = 1024;
