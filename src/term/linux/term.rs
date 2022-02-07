@@ -1,4 +1,5 @@
-use crate::term::*;
+use crate::core::geometry::*;
+use crate::term::common::*;
 use super::bindings::*;
 
 impl From<winsize> for Size {

@@ -6,7 +6,8 @@ use crate::text::keys;
 use crate::config::{theme, settings};
 use crate::buffers::gap_buffer::GapBuffer;
 use crate::components::{status_bar, gutter};
-use crate::term::*;
+use crate::term::common::*;
+use crate::term::vt100;
 use crate::term::vt100::Vt100;
 
 type CharBuffer = [u8; 4];

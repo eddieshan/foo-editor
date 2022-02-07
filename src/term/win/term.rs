@@ -1,7 +1,7 @@
 use std::ptr;
 use std::convert::TryFrom;
 
-use crate::term::*;
+use crate::term::common::*;
 use crate::term::win::bindings::*;
 
 // This is annoying. The trait should be just From instead of TryFrom.
