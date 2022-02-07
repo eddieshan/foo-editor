@@ -9,11 +9,9 @@ mod components;
 mod gap_buffer;
 mod editor;
 
-use std::io::Result;
+use crate::editor::*;
 
-use crate::editor::Editor;
-
-fn main() -> Result<()> {
+fn main() -> Result<(), EditorError> {
 
     let state = term::configure()?;
     let mut editor = Editor::new(&state);

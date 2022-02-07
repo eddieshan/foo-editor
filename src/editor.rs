@@ -1,5 +1,5 @@
 use std::io;
-use std::io::{Result, Read, Write};
+use std::io::{Read, Write};
 
 use crate::core::geometry::Position;
 use crate::{keys, theme, settings};
@@ -9,6 +9,24 @@ use crate::term::*;
 use crate::term::vt100::Vt100;
 
 type CharBuffer = [u8; 4];
+
+#[derive(Debug)]
+pub enum EditorError {
+    OsTermError(TermError), // Errors caused by OS term specific sys calls.
+    IoError(io::Error) // General IO errors.
+}
+
+impl From<TermError> for EditorError {
+    fn from(err: TermError) -> Self {
+        EditorError::OsTermError(err)
+    }
+}
+
+impl From<io::Error> for EditorError {
+    fn from(err: io::Error) -> Self {
+        EditorError::IoError(err)
+    }
+}
 
 pub struct Editor<'a> {
     term: &'a (dyn Term + 'a)
@@ -20,7 +38,7 @@ impl<'a> Editor<'a> {
         Editor { term: term }
     }
 
-    pub fn run(&mut self) -> Result<()> {
+    pub fn run(&mut self) -> Result<(), EditorError> {
 
         let mut stdout = io::stdout();
         let mut stdin = io::stdin();
@@ -86,7 +104,7 @@ impl<'a> Editor<'a> {
     }
 }
 
-fn reset() -> Result<()> {
+fn reset() -> io::Result<()> {
     let mut stdout = io::stdout();
     stdout.write(vt100::RESET)?;
     stdout.write(vt100::CLEAR)?;
@@ -99,6 +117,6 @@ impl<'a> Drop for Editor<'a> {
         // Does it make sense to log errors in reset or restore?
         // Since a Result cannot be returned in Drop, is it better to 
         // restore state in another place that allows error propagation.
-        let _ = reset().and_then(|()| self.term.restore());
+        let _ = reset().map(|()| self.term.restore());
     }
 }

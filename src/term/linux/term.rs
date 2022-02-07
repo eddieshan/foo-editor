@@ -1,15 +1,11 @@
-use std::io::{Result, Error, ErrorKind};
-use std::convert::TryFrom;
-
 use crate::term::*;
 use super::bindings::*;
 
-impl TryFrom<winsize> for Size {
-    type Error = Error;
-    fn try_from(coord: winsize) -> std::result::Result<Self, Self::Error> {
-        match (usize::try_from(coord.ws_col), usize::try_from(coord.ws_row)) {
-            (Ok(w), Ok(h)) => Ok(Size { width: w, height: h }),
-            _              => Err(Error::last_os_error())
+impl From<winsize> for Size {
+    fn from(coord: winsize) -> Self {
+        Size { 
+            width: usize::from(coord.ws_col), 
+            height: usize::from(coord.ws_row)
         }
     }
 }
@@ -61,7 +57,7 @@ impl termios {
     }    
 }
 
-fn get_window_size() -> Result<Size> {
+fn get_window_size() -> Result<Size, TermError> {
     let ws = winsize {
         ws_row: 0,
         ws_col: 0,
@@ -72,20 +68,20 @@ fn get_window_size() -> Result<Size> {
     unsafe {
         let result = ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws);
         match (result, ws.ws_col) {
-            (-1, _) => Err(Error::new(ErrorKind::Other, "")),
-            (_, 0)  => Err(Error::new(ErrorKind::Other, "")),
-            _       => Size::try_from(ws)
+            (-1, _) => Err(TermError::CannotGetTermAttributes),
+            (_, 0)  => Err(TermError::InvalidTermAttributes),
+            _       => Ok(Size::from(ws))
         }
     }
 }
 
 impl Term for LinuxTerm {
-    fn restore(&self) -> Result<()> {
+    fn restore(&self) -> Result<(), TermError> {
         set_term_attr(&self.state)?;
         Ok(())
     }
 
-    fn info(&self) -> Result<TermInfo> {
+    fn info(&self) -> Result<TermInfo, TermError> {
 
         let window_size = get_window_size()?;
 
@@ -100,7 +96,7 @@ impl Term for LinuxTerm {
     }
 }
 
-fn get_term_attr() -> Result<termios> {
+fn get_term_attr() -> Result<termios, TermError> {
 
     let mut state = termios {
         c_iflag: 0,
@@ -115,24 +111,24 @@ fn get_term_attr() -> Result<termios> {
 
     unsafe {
         if tcgetattr(STDIN_FILENO, &mut state) < 0 {
-            Err(Error::new(ErrorKind::Other, ""))
+            Err(TermError::CannotGetTermAttributes)
         } else {
             Ok(state)
         }
     }
 }
 
-fn set_term_attr(state: &termios) -> Result<()> {
+fn set_term_attr(state: &termios) -> Result<(), TermError> {
     unsafe {
         if tcsetattr(STDIN_FILENO, TCSAFLUSH, state) < 0 {
-            Err(Error::new(ErrorKind::Other, ""))
+            Err(TermError::CannotSetTermAttributes)
         } else {
             Ok(())
         }
     }
 }
 
-pub fn os_configure() -> Result<impl Term> {
+pub fn os_configure() -> Result<impl Term, TermError> {
 
     let initial_term_state = get_term_attr()?;
     let raw_term_state = termios::raw_from(&initial_term_state);
