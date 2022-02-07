@@ -2,9 +2,10 @@ use std::io::{Result, Write};
 
 use crate::core::geometry::Position;
 use crate::core::convert;
+use crate::text::keys;
 use crate::term::*;
 use crate::term::vt100::*;
-use crate::{keys, theme};
+use crate::config::theme;
 
 const MAX_LINE_WIDTH: usize = 200;
 const WHITESPACE_LINE: [u8; MAX_LINE_WIDTH] = [keys::WHITESPACE; MAX_LINE_WIDTH];

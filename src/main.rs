@@ -1,12 +1,11 @@
 mod core;
-mod keys;
-mod settings;
-mod theme;
+mod text;
+mod config;
 
 mod term;
 mod components;
 
-mod gap_buffer;
+mod buffers;
 mod editor;
 
 use crate::editor::*;
