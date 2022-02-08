@@ -1,10 +1,13 @@
+use std::io;
 use crate::core::errors::*;
 
 use crate::text::keys::KeyBuffer;
 use crate::text::keys;
 use crate::models::editor::EditorState;
+use crate::views;
+use super::ActionResult;
 
-pub fn edit(key: KeyBuffer, length: usize, state: &mut EditorState) -> Result<(), EditorError> {
+pub fn edit<T: io::Write>(key: KeyBuffer, length: usize, state: &mut EditorState) -> Result<ActionResult<T>, EditorError> {
 
     let code = u32::from_be_bytes(key); // Conversion has to be big endian to match the input sequence.
 
@@ -27,5 +30,8 @@ pub fn edit(key: KeyBuffer, length: usize, state: &mut EditorState) -> Result<()
         }
     };
 
-    Ok(())
+    Ok(ActionResult {
+        view: views::edit::render,
+        controller: super::edit_controller::edit
+    })
 }

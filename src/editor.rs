@@ -9,20 +9,23 @@ use crate::core:: {
 use crate::text::keys::KeyBuffer;
 use crate::text::keys;
 use crate::models::editor::EditorState;
+use crate::controllers::*;
 use crate::config::theme;
 use crate::buffers::gap_buffer::GapBuffer;
 use crate::views::edit;
 use crate::term::common::*;
 use crate::term::vt100;
 
-fn render(stdout: &mut impl Write, state: &EditorState) -> io::Result<()> {
+fn render(stdout: &mut impl Write, state: &EditorState) -> Result<(), EditorError> {
     stdout.write(vt100::CLEAR)?;
     stdout.write(theme::HOME)?;
     stdout.write(theme::TEXT_DEFAULT)?;
 
-    edit::render(stdout, &state);
+    edit::render(stdout, &state)?;
 
-    stdout.flush()
+    stdout.flush()?;
+
+    Ok(())
 }
 
 pub fn run(term: &impl Term) -> Result<(), EditorError> {
@@ -35,7 +38,7 @@ pub fn run(term: &impl Term) -> Result<(), EditorError> {
         buffer: GapBuffer::new()
     };
 
-    render(&mut stdout, &state);
+    render(&mut stdout, &state)?;
     
     let mut buffer: KeyBuffer = [0; 4];
 
@@ -64,16 +67,16 @@ pub fn run(term: &impl Term) -> Result<(), EditorError> {
             }
         };
 
-        render(&mut stdout, &state);
+        render(&mut stdout, &state)?;
     }
 
-    reset().map(|()| term.restore())?;
+    reset(&mut stdout)?;
+    term.restore()?;
 
     Ok(())
 }
 
-fn reset() -> io::Result<()> {
-    let mut stdout = io::stdout();
+fn reset(stdout: &mut impl Write,) -> io::Result<()> {
     stdout.write(vt100::RESET)?;
     stdout.write(vt100::CLEAR)?;
     stdout.flush()
