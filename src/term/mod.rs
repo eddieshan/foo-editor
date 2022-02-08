@@ -12,8 +12,9 @@ mod win;
 use win::term::os_configure;
 
 use common::*;
+use crate::core::errors;
 
-pub fn configure() -> Result<impl Term, TermError> {
+pub fn configure() -> Result<impl Term, errors::TermError> {
     os_configure()
 }
 

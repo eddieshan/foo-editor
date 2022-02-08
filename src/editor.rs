@@ -1,34 +1,19 @@
 use std::io;
 use std::io::{Read, Write};
 
-use crate::core::geometry::Position;
+use crate::core:: {
+    errors::*,
+    geometry::Position
+};
+
+use crate::text::keys::KeyBuffer;
 use crate::text::keys;
-use crate::config::{theme, settings};
+use crate::models::editor::EditorState;
+use crate::config::theme;
 use crate::buffers::gap_buffer::GapBuffer;
-use crate::components::{status_bar, gutter};
+use crate::views::edit;
 use crate::term::common::*;
 use crate::term::vt100;
-use crate::term::vt100::Vt100;
-
-type CharBuffer = [u8; 4];
-
-#[derive(Debug)]
-pub enum EditorError {
-    OsTermError(TermError), // Errors caused by OS term specific sys calls.
-    IoError(io::Error) // General IO errors.
-}
-
-impl From<TermError> for EditorError {
-    fn from(err: TermError) -> Self {
-        EditorError::OsTermError(err)
-    }
-}
-
-impl From<io::Error> for EditorError {
-    fn from(err: io::Error) -> Self {
-        EditorError::IoError(err)
-    }
-}
 
 pub struct Editor<'a> {
     term: &'a (dyn Term + 'a)
@@ -47,19 +32,18 @@ impl<'a> Editor<'a> {
 
         stdout.write(vt100::CLEAR)?;
 
-        let term_info = self.term.info()?;
+        let mut state = EditorState {
+            term_info: self.term.info()?,
+            buffer: GapBuffer::new()
+        };
 
-        let start_pos = Position { x: 1, y: 1 };
-
-        gutter::render(&mut stdout, start_pos.y, 1)?;
-        status_bar::render(&mut stdout, &start_pos, &term_info)?;
+        edit::render(&mut stdout, &state);
 
         stdout.write(theme::HOME)?;
 
         stdout.flush()?;
         
-        let mut buffer: CharBuffer = [0; 4];
-        let mut gap_buffer = GapBuffer::new();
+        let mut buffer: KeyBuffer = [0; 4];
 
         loop {
             buffer.fill(0);
@@ -69,19 +53,19 @@ impl<'a> Editor<'a> {
 
             match code {
                 keys::CTRL_Q    => { break; },
-                keys::CR        => gap_buffer.insert(keys::LINE_FEED),
-                keys::UP        => gap_buffer.up(),
-                keys::DOWN      => gap_buffer.down(),
-                keys::RIGHT     => gap_buffer.right(),
-                keys::LEFT      => gap_buffer.left(),
+                keys::CR        => state.buffer.insert(keys::LINE_FEED),
+                keys::UP        => state.buffer.up(),
+                keys::DOWN      => state.buffer.down(),
+                keys::RIGHT     => state.buffer.right(),
+                keys::LEFT      => state.buffer.left(),
                 keys::HTAB      => { },
-                keys::LN_START  => gap_buffer.ln_start(),
-                keys::LN_END    => gap_buffer.ln_end(),
-                keys::DEL       => gap_buffer.del_right(),
-                keys::BS        => gap_buffer.del_left(),
+                keys::LN_START  => state.buffer.ln_start(),
+                keys::LN_END    => state.buffer.ln_end(),
+                keys::DEL       => state.buffer.del_right(),
+                keys::BS        => state.buffer.del_left(),
                 _               => {
                     if length == 1 {
-                        gap_buffer.insert(buffer[0]);
+                        state.buffer.insert(buffer[0]);
                     }
                 }
             };
@@ -89,15 +73,8 @@ impl<'a> Editor<'a> {
             stdout.write(vt100::CLEAR)?;
             stdout.write(theme::HOME)?;
             stdout.write(theme::TEXT_DEFAULT)?;
-            
-            let (total_ln, lncol) = gap_buffer.dump(&mut stdout)?;
-            
-            gutter::render(&mut stdout, lncol.y, total_ln)?;
-            status_bar::render(&mut stdout, &lncol, &term_info)?;
 
-            let screen_pos = Position { x: lncol.x + settings::GUTTER_WIDTH, y: lncol.y };
-
-            stdout.pos(screen_pos.y, screen_pos.x)?;
+            edit::render(&mut stdout, &state);
     
             stdout.flush()?;
         }

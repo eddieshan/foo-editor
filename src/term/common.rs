@@ -1,11 +1,7 @@
-use crate::core::geometry::Size;
-
-#[derive(Debug)]
-pub enum TermError {
-    CannotGetTermAttributes,
-    CannotSetTermAttributes,
-    InvalidTermAttributes    
-}
+use crate::core:: {
+    errors::TermError,
+    geometry::Size
+};
 
 pub struct TermInfo {
     pub buffer_size: Size,
