@@ -16,3 +16,4 @@ pub const LN_END: u32   = 0x1b5b4600;
 
 pub const DEL: u32      = 0x1b5b337e;
 
+pub type KeyBuffer = [u8; 4];

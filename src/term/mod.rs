@@ -1,21 +1,5 @@
-use crate::core::geometry::Size;
-
-#[derive(Debug)]
-pub enum TermError {
-    CannotGetTermAttributes,
-    CannotSetTermAttributes,
-    InvalidTermAttributes    
-}
-
-pub struct TermInfo {
-    pub buffer_size: Size,
-    pub screen_size: Size
-}
-
-pub trait Term {
-    fn restore(&self) -> Result<(), TermError>;
-    fn info(&self) -> Result<TermInfo, TermError>;
-}
+pub mod common;
+pub mod vt100;
 
 #[cfg(target_os = "linux")]
 mod linux;
@@ -27,8 +11,10 @@ mod win;
 #[cfg(target_os = "windows")]
 use win::term::os_configure;
 
-pub fn configure() -> Result<impl Term, TermError> {
+use common::*;
+use crate::core::errors;
+
+pub fn configure() -> Result<impl Term, errors::TermError> {
     os_configure()
 }
 
-pub mod vt100;

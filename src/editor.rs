@@ -1,123 +1,67 @@
 use std::io;
 use std::io::{Read, Write};
 
-use crate::core::geometry::Position;
-use crate::text::keys;
-use crate::config::{theme, settings};
+use crate::core::errors::*;
+
+use crate::text::{keys, keys::KeyBuffer};
+use crate::config::theme;
 use crate::buffers::gap_buffer::GapBuffer;
-use crate::components::{status_bar, gutter};
-use crate::term::*;
-use crate::term::vt100::Vt100;
+use crate::term::{common::*, vt100};
+use crate::models::editor::EditorState;
+use crate::controllers::*;
+use crate::views;
 
-type CharBuffer = [u8; 4];
+fn render<T: Write>(stdout: &mut T, view: View<T>, state: &EditorState) -> Result<(), EditorError> {
+    stdout.write(vt100::CLEAR)?;
+    stdout.write(theme::HOME)?;
+    stdout.write(theme::TEXT_DEFAULT)?;
+    view(stdout, state)?;
+    stdout.flush()?;
 
-#[derive(Debug)]
-pub enum EditorError {
-    OsTermError(TermError), // Errors caused by OS term specific sys calls.
-    IoError(io::Error) // General IO errors.
+    Ok(())
 }
 
-impl From<TermError> for EditorError {
-    fn from(err: TermError) -> Self {
-        EditorError::OsTermError(err)
-    }
-}
+pub fn run(term: &impl Term) -> Result<(), EditorError> {
 
-impl From<io::Error> for EditorError {
-    fn from(err: io::Error) -> Self {
-        EditorError::IoError(err)
-    }
-}
-
-pub struct Editor<'a> {
-    term: &'a (dyn Term + 'a)
-}
-
-impl<'a> Editor<'a> {
-
-    pub fn new(term: &'a impl Term) -> Self {
-        Editor { term: term }
-    }
-
-    pub fn run(&mut self) -> Result<(), EditorError> {
-
-        let mut stdout = io::stdout();
-        let mut stdin = io::stdin();
-
-        stdout.write(vt100::CLEAR)?;
-
-        let term_info = self.term.info()?;
-
-        let start_pos = Position { x: 1, y: 1 };
-
-        gutter::render(&mut stdout, start_pos.y, 1)?;
-        status_bar::render(&mut stdout, &start_pos, &term_info)?;
-
-        stdout.write(theme::HOME)?;
-
-        stdout.flush()?;
-        
-        let mut buffer: CharBuffer = [0; 4];
-        let mut gap_buffer = GapBuffer::new();
-
-        loop {
-            buffer.fill(0);
-   
-            let length = stdin.read(&mut buffer)?;
-            let code = u32::from_be_bytes(buffer); // Conversion has to be big endian to match the input sequence.
-
-            match code {
-                keys::CTRL_Q    => { break; },
-                keys::CR        => gap_buffer.insert(keys::LINE_FEED),
-                keys::UP        => gap_buffer.up(),
-                keys::DOWN      => gap_buffer.down(),
-                keys::RIGHT     => gap_buffer.right(),
-                keys::LEFT      => gap_buffer.left(),
-                keys::HTAB      => { },
-                keys::LN_START  => gap_buffer.ln_start(),
-                keys::LN_END    => gap_buffer.ln_end(),
-                keys::DEL       => gap_buffer.del_right(),
-                keys::BS        => gap_buffer.del_left(),
-                _               => {
-                    if length == 1 {
-                        gap_buffer.insert(buffer[0]);
-                    }
-                }
-            };
-
-            stdout.write(vt100::CLEAR)?;
-            stdout.write(theme::HOME)?;
-            stdout.write(theme::TEXT_DEFAULT)?;
-            
-            let (total_ln, lncol) = gap_buffer.dump(&mut stdout)?;
-            
-            gutter::render(&mut stdout, lncol.y, total_ln)?;
-            status_bar::render(&mut stdout, &lncol, &term_info)?;
-
-            let screen_pos = Position { x: lncol.x + settings::GUTTER_WIDTH, y: lncol.y };
-
-            stdout.pos(screen_pos.y, screen_pos.x)?;
-    
-            stdout.flush()?;
-        }
-
-        Ok(())
-    }
-}
-
-fn reset() -> io::Result<()> {
     let mut stdout = io::stdout();
+    let mut stdin = io::stdin();
+
+    let mut state = EditorState {
+        term_info: term.info()?,
+        buffer: GapBuffer::new()
+    };
+
+    let mut action_result = ActionResult {
+        view: views::edit::render,
+        controller: edit_controller::edit
+    };
+
+    render(&mut stdout, action_result.view, &state)?;
+    
+    let mut buffer: KeyBuffer = [0; 4];
+
+    loop {
+        buffer.fill(0);
+
+        let length = stdin.read(&mut buffer)?;
+        let code = u32::from_be_bytes(buffer); // Conversion has to be big endian to match the input sequence.
+
+        action_result = match code {
+            keys::CTRL_Q => { break; },
+            _            => (action_result.controller)(&buffer, length, &mut state)?
+        };
+
+        render(&mut stdout, action_result.view, &state)?;
+    }
+
+    reset(&mut stdout)?;
+    term.restore()?;
+
+    Ok(())
+}
+
+fn reset(stdout: &mut impl Write,) -> io::Result<()> {
     stdout.write(vt100::RESET)?;
     stdout.write(vt100::CLEAR)?;
     stdout.flush()
-}
-
-impl<'a> Drop for Editor<'a> {
-    fn drop(&mut self) {
-        // TODO: how to handle errors properly in destructor?
-        // Does it make sense to log errors in reset or restore?
-        // Since a Result cannot be returned in Drop, is it better to 
-        // restore state in another place that allows error propagation.
-        let _ = reset().map(|()| self.term.restore());
-    }
 }

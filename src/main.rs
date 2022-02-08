@@ -3,17 +3,17 @@ mod text;
 mod config;
 
 mod term;
-mod components;
+mod views;
 
 mod buffers;
 mod editor;
 
-use crate::editor::*;
+mod models;
+mod controllers;
 
-fn main() -> Result<(), EditorError> {
+use crate::core::errors;
 
-    let state = term::configure()?;
-    let mut editor = Editor::new(&state);
-    
-    editor.run()
+fn main() -> Result<(), errors::EditorError> {
+    let term = term::configure()?;
+    editor::run(&term)
 }
