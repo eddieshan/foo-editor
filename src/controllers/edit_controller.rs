@@ -7,9 +7,9 @@ use crate::models::editor::EditorState;
 use crate::views;
 use super::ActionResult;
 
-pub fn edit<T: io::Write>(key: KeyBuffer, length: usize, state: &mut EditorState) -> Result<ActionResult<T>, EditorError> {
+pub fn edit<T: io::Write>(key: &KeyBuffer, length: usize, state: &mut EditorState) -> Result<ActionResult<T>, EditorError> {
 
-    let code = u32::from_be_bytes(key); // Conversion has to be big endian to match the input sequence.
+    let code = u32::from_be_bytes(*key); // Conversion has to be big endian to match the input sequence.
 
     match code {
         keys::CTRL_Q    => { },

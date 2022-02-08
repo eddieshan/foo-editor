@@ -5,10 +5,11 @@ use crate::core::errors::EditorError;
 use crate::text::keys::KeyBuffer;
 use crate::models::editor::*;
 
-// It would better to use type aliases for view and controller
-// but unfortunately Rust does not support generic bounds on type
-// aliases so T: Write cannot be declared.
+// It would better to constrain T as T: Write but unfortunately Rust 
+// does not support generic bounds on type aliases.
+pub type View<T> = fn (&mut T, &EditorState) -> Result<(), EditorError>;
+
 pub struct ActionResult<T: Write> {
-    view: fn (&mut T, &EditorState) -> Result<(), EditorError>,
-    controller: fn (KeyBuffer, usize, &mut EditorState) -> Result<ActionResult<T>, EditorError>
+    pub view: View<T>,
+    pub controller: fn (&KeyBuffer, usize, &mut EditorState) -> Result<ActionResult<T>, EditorError>
 }
