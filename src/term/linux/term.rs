@@ -1,8 +1,4 @@
-use crate::core:: {
-    errors::*,
-    geometry::*
-};
-
+use crate::core:: {errors::*, geometry::*};
 use crate::term::common::*;
 use super::bindings::*;
 

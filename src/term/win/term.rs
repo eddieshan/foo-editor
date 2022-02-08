@@ -1,8 +1,7 @@
 use std::ptr;
 use std::convert::TryFrom;
 
-use crate::term::common::*;
-use crate::term::win::bindings::*;
+use crate::{term::common::*, term::win::bindings::*};
 
 // This is annoying. The trait should be just From instead of TryFrom.
 // But only in Win32 you will see window dimensions measured with signed short.

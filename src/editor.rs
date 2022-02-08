@@ -3,16 +3,13 @@ use std::io::{Read, Write};
 
 use crate::core::errors::*;
 
-use crate::text::keys::KeyBuffer;
-use crate::text::keys;
-use crate::models::editor::EditorState;
-use crate::views;
-use crate::controllers;
-use crate::controllers::*;
+use crate::text::{keys, keys::KeyBuffer};
 use crate::config::theme;
 use crate::buffers::gap_buffer::GapBuffer;
-use crate::term::common::*;
-use crate::term::vt100;
+use crate::term::{common::*, vt100};
+use crate::models::editor::EditorState;
+use crate::controllers::*;
+use crate::views;
 
 fn render<T: Write>(stdout: &mut T, view: View<T>, state: &EditorState) -> Result<(), EditorError> {
     stdout.write(vt100::CLEAR)?;
@@ -36,7 +33,7 @@ pub fn run(term: &impl Term) -> Result<(), EditorError> {
 
     let mut action_result = ActionResult {
         view: views::edit::render,
-        controller: controllers::edit_controller::edit
+        controller: edit_controller::edit
     };
 
     render(&mut stdout, action_result.view, &state)?;

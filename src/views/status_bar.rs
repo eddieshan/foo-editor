@@ -1,11 +1,8 @@
 use std::io::{Result, Write};
 
-use crate::core::geometry::Position;
-use crate::core::convert;
+use crate::core::{convert, geometry::Position};
 use crate::text::keys;
-use crate::term::common::*;
-use crate::term::vt100;
-use crate::term::vt100::Vt100;
+use crate::term::{common::*, vt100, vt100::Vt100};
 use crate::config::theme;
 
 const MAX_LINE_WIDTH: usize = 200;

@@ -1,8 +1,7 @@
 use std::io;
 use crate::core::errors::*;
 
-use crate::text::keys::KeyBuffer;
-use crate::text::keys;
+use crate::text::{keys, keys::KeyBuffer};
 use crate::models::editor::EditorState;
 use crate::views;
 use super::ActionResult;
