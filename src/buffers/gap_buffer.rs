@@ -1,9 +1,8 @@
 use std::cmp;
-use std::io::{Result, Write};
+use std::io::{Result};
 
 use crate::config::settings;
 use crate::text::keys;
-use crate::core::geometry::Position;
 
 const KB: usize = 1024;
 const BLOCK_SIZE: usize = 10*KB;
@@ -12,7 +11,7 @@ const BUFFER_LIMIT: usize = BUFFER_SIZE - 1;
 
 pub struct GapBuffer {
     bytes: [u8; BUFFER_SIZE],
-    gap: usize,
+    pub gap: usize,
     end: usize
 }
 
@@ -180,60 +179,37 @@ impl GapBuffer {
     pub fn bytes(&self) -> &[u8] {
         &self.bytes[0..self.gap]
     }
-
-    // fn dump_lines(&self, writer: &mut impl Write, from: usize, to: usize) -> Result<(usize, usize)> {
-    //     let mut ln_start = from;
-    //     let mut ln_count = 0;
+ 
+    // fn copy_section(&self, buffer: &mut [u8], from: usize, to: usize) {
+    //     let mut pos: usize = 0;
+    //     let line_break_size = settings::LINE_FEED.len();
     //     for i in from..to {
     //         if self.bytes[i] == keys::LINE_FEED {
-    //             writer.write(&self.bytes[ln_start..i])?;
-    //             writer.write(settings::LINE_FEED)?;
-    //             ln_count += 1;
-    //             ln_start = i + 1;
+    //             for j in 0..line_break_size {
+    //                 buffer[pos + j] = settings::LINE_FEED[j];
+    //             }
+    //             pos += line_break_size;
+    //         } else {
+    //             buffer[pos] = self.bytes[i];
+    //             pos += 1;
     //         }
     //     }
+    // }    
 
-    //     writer.write(&self.bytes[ln_start..to])?;
-
-    //     Ok((ln_count, to - ln_start))
-    // }
-
-    // pub fn dump(&self, writer: &mut impl Write) -> Result<(usize, Position)> {
-    //     let (gap_ln, gap_col) = self.dump_lines(writer, 0, self.gap)?;
-    //     let lncol = Position { x: gap_col + 1, y: gap_ln + 1 };
-
-    //     let total_ln = match self.end < BUFFER_LIMIT {
-    //         true => {
-    //             let (end_ln, _) = self.dump_lines(writer, self.end + 1, BUFFER_SIZE)?;
-    //             gap_ln + end_ln + 1
-    //         },
-    //         false => gap_ln + 1
-    //     };
-
-    //     Ok((total_ln, lncol))
-    // }
-
-    fn copy_section(&self, buffer: &mut [u8], from: usize, to: usize) {
-        let mut pos: usize = 0;
-        let line_break_size = settings::LINE_FEED.len();
+    fn copy_section(&self, buffer: &mut Vec<u8>, from: usize, to: usize) {
         for i in from..to {
-            if self.bytes[i] == keys::LINE_FEED {
-                for j in 0..line_break_size {
-                    buffer[pos + j] = settings::LINE_FEED[j];
-                }
-                pos += line_break_size;
-            } else {
-                buffer[pos] = self.bytes[i];
-                pos += 1;
-            }
+            buffer.push(self.bytes[i]);
         }
-    }    
+    }
 
-    pub fn copy_to(&self, buffer: &mut [u8]) {
+    pub fn copy_to(&self, buffer: &mut Vec<u8>) -> Result<()> {
+        buffer.clear();
+        
         self.copy_section(buffer, 0, self.gap);
 
         if self.end < BUFFER_LIMIT {
             self.copy_section(buffer, self.end + 1, BUFFER_SIZE);
         }
+        Ok(())
     }    
 }

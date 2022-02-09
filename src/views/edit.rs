@@ -2,20 +2,35 @@ use std::io::Write;
 
 use crate::core::{errors::*, geometry::Position};
 use crate::term::vt100::*;
+use crate::text::keys;
 use crate::config::settings;
 use crate::models::editor::EditorState;
-use super::{gutter, status_bar};
+use super::{plain_text, gutter, status_bar};
 
 pub fn render(buffer: &mut impl Write, state: &EditorState) -> Result<(), EditorError> {
+    let n_lines = state.text.iter()
+        .filter(|&&v| v == keys::LINE_FEED)
+        .count() + 1;
 
-    let (total_ln, lncol) = (0, Position { x: 0, y: 0 });
+    let mut cursor = Position { x: 1, y: 1 };
 
-    buffer.write(&state.text);
+    state.text[0..state.buffer.gap].iter().for_each(|&v| {
+        if v == keys::LINE_FEED {
+            cursor.y += 1;
+            cursor.x = 1;
+        } else {
+            cursor.x += 1;
+        }
+    });
 
-    gutter::render(buffer, lncol.y, total_ln)?;
-    status_bar::render(buffer, &lncol, &state.term_info)?;
+    if state.text.len() > 0 {
+        plain_text::render(buffer, &state.text)?;
+    }
+
+    gutter::render(buffer, cursor.y, n_lines)?;
+    status_bar::render(buffer, &cursor, &state.term_info)?;
     
-    let screen_pos = Position { x: lncol.x + settings::GUTTER_WIDTH, y: lncol.y };
+    let screen_pos = Position { x: cursor.x + settings::GUTTER_WIDTH, y: cursor.y };
     
     buffer.pos(screen_pos.y, screen_pos.x)?;
 

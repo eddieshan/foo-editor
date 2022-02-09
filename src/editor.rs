@@ -29,7 +29,7 @@ pub fn run(term: &impl Term) -> Result<(), EditorError> {
     let mut state = EditorState {
         term_info: term.info()?,
         buffer: GapBuffer::new(),
-        text: vec![0; 1024]
+        text: Vec::with_capacity(1024)
     };
 
     let mut action_result = ActionResult {
@@ -47,7 +47,7 @@ pub fn run(term: &impl Term) -> Result<(), EditorError> {
             _            => (action_result.controller)(&key, &mut state)?
         };
     
-        state.buffer.copy_to(&mut state.text);
+        state.buffer.copy_to(&mut state.text)?;
 
         render(&mut stdout, action_result.view, &state)?;
     }
