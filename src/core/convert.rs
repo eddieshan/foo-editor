@@ -25,5 +25,5 @@ pub fn to_slice_3(val: usize, target: &mut [u8]) -> Result<()> {
         Ok(())
     } else {
         Err(Error::from(ErrorKind::Other))
-    }    
+    }
 }
