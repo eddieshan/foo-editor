@@ -8,7 +8,9 @@ use super::{gutter, status_bar};
 
 pub fn render(buffer: &mut impl Write, state: &EditorState) -> Result<(), EditorError> {
 
-    let (total_ln, lncol) = state.buffer.dump(buffer)?;
+    let (total_ln, lncol) = (0, Position { x: 0, y: 0 });
+
+    buffer.write(&state.text);
 
     gutter::render(buffer, lncol.y, total_ln)?;
     status_bar::render(buffer, &lncol, &state.term_info)?;
