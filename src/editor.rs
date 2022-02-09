@@ -1,9 +1,9 @@
 use std::io;
-use std::io::{Read, Write};
+use std::io::Write;
 
 use crate::core::errors::*;
 
-use crate::text::{keys, keys::KeyBuffer};
+use crate::text::{keys, keys::ReadKey};
 use crate::config::theme;
 use crate::buffers::gap_buffer::GapBuffer;
 use crate::term::{common::*, vt100};
@@ -37,18 +37,13 @@ pub fn run(term: &impl Term) -> Result<(), EditorError> {
     };
 
     render(&mut stdout, action_result.view, &state)?;
-    
-    let mut buffer: KeyBuffer = [0; 4];
-
+ 
     loop {
-        buffer.fill(0);
+        let key = stdin.read_key()?;
 
-        let length = stdin.read(&mut buffer)?;
-        let code = u32::from_be_bytes(buffer); // Conversion has to be big endian to match the input sequence.
-
-        action_result = match code {
+        action_result = match key.code {
             keys::CTRL_Q => { break; },
-            _            => (action_result.controller)(&buffer, length, &mut state)?
+            _            => (action_result.controller)(&key, &mut state)?
         };
 
         render(&mut stdout, action_result.view, &state)?;

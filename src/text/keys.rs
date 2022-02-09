@@ -1,3 +1,5 @@
+use std::io::{Read, Result};
+
 pub const WHITESPACE: u8 = 32;
 pub const LINE_FEED: u8 = 10;
 
@@ -17,3 +19,26 @@ pub const LN_END: u32   = 0x1b5b4600;
 pub const DEL: u32      = 0x1b5b337e;
 
 pub type KeyBuffer = [u8; 4];
+
+pub struct Key {
+    pub bytes: KeyBuffer,
+    pub code: u32,
+    pub length: usize
+}
+
+pub trait ReadKey {
+    fn read_key(&mut self) -> Result<Key>;
+}
+
+impl<T> ReadKey for T where T: Read {
+    fn read_key(&mut self) -> Result<Key> {
+        let mut buffer: KeyBuffer = [0; 4];
+        let length = self.read(&mut buffer)?;
+
+        Ok(Key {
+            bytes: buffer,
+            code: u32::from_be_bytes(buffer),
+            length: length
+        })
+    }
+}

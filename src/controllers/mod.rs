@@ -2,7 +2,7 @@ pub mod edit_controller;
 
 use std::io::Write;
 use crate::core::errors::EditorError;
-use crate::text::keys::KeyBuffer;
+use crate::text::keys::Key;
 use crate::models::editor::*;
 
 // It would better to constrain T as T: Write but unfortunately Rust 
@@ -11,5 +11,5 @@ pub type View<T> = fn (&mut T, &EditorState) -> Result<(), EditorError>;
 
 pub struct ActionResult<T: Write> {
     pub view: View<T>,
-    pub controller: fn (&KeyBuffer, usize, &mut EditorState) -> Result<ActionResult<T>, EditorError>
+    pub controller: fn (&Key, &mut EditorState) -> Result<ActionResult<T>, EditorError>
 }
