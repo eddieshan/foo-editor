@@ -30,7 +30,7 @@ pub trait ReadKey {
     fn read_key(&mut self) -> Result<Key>;
 }
 
-impl<T> ReadKey for T where T: Read {
+impl<T: Read> ReadKey for T {
     fn read_key(&mut self) -> Result<Key> {
         let mut buffer: KeyBuffer = [0; 4];
         let length = self.read(&mut buffer)?;

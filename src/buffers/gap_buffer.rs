@@ -1,7 +1,6 @@
 use std::cmp;
 use std::io::{Result};
 
-use crate::config::settings;
 use crate::text::keys;
 
 const KB: usize = 1024;

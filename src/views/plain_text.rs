@@ -1,10 +1,9 @@
 use std::io::Write;
 
-use crate::core::{errors::*};
+use crate::core::errors::*;
 use crate::term::vt100::*;
 use crate::text::keys;
 use crate::config::settings;
-use crate::models::editor::EditorState;
 
 pub fn render(buffer: &mut impl Write, text: &[u8]) -> Result<(), EditorError> {
     
