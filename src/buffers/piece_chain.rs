@@ -40,7 +40,7 @@ fn find_cursor(pos: usize, pieces: &Vec<Piece>) -> PieceCursor {
 
 impl PieceChain {
 
-    fn with_capacity(capacity: usize, n_pieces: usize) -> Self {
+    pub fn with_capacity(capacity: usize, n_pieces: usize) -> Self {
         let mut pieces = Vec::with_capacity(n_pieces);
         pieces.push(Default::default());
         PieceChain {
@@ -50,7 +50,7 @@ impl PieceChain {
         }
     }
     
-    fn insert(&mut self, val: u8, pos: usize) -> usize {
+    pub fn insert(&mut self, val: u8, pos: usize) {
         if pos == self.len() {
             if let Some(piece) = self.pieces.last_mut() {
                 piece.size += 1;
@@ -79,18 +79,16 @@ impl PieceChain {
         }
 
         self.buffer.push(val);
-
-        pos + 1
     }
 
-    fn append(&mut self, data: &[u8]) {
+    pub fn append(&mut self, data: &[u8]) {
         self.buffer.extend_from_slice(data);
         if let Some(piece) = self.pieces.last_mut() {
             piece.size += data.len();
         }
     }
 
-    fn erase(&mut self, pos: usize) {
+    pub fn erase(&mut self, pos: usize) {
         let size = self.buffer.len();
         if size > 0 && pos < size {
             let cursor = find_cursor(pos, &self.pieces);
@@ -118,18 +116,26 @@ impl PieceChain {
         }
     }
 
-    fn clear(&mut self) {
+    pub fn clear(&mut self) {
         self.buffer.clear();
         self.pieces.clear();
         self.last_piece = 0;
         self.pieces.push(Default::default());
     }
 
-    fn len(&self) -> usize {
+    pub fn len(&self) -> usize {
         self.buffer.len()
     }
 
-    fn capacity(&self) -> usize {
+    pub fn capacity(&self) -> usize {
         self.buffer.capacity()
     }
+
+    pub fn copy_to(&self, buffer: &mut Vec<u8>) {
+        buffer.clear();
+        for piece in self.pieces.iter() {
+            let end = piece.start + piece.size;
+            buffer.extend_from_slice(&self.buffer[piece.start..end]);
+        }
+    }    
 }

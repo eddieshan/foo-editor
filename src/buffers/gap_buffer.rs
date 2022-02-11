@@ -56,7 +56,7 @@ impl GapBuffer {
         while pos > 0 {
             pos -= 1;
 
-            if self.bytes[pos] == keys::LINE_FEED {
+            if self.bytes[pos] == keys::LF {
                 return match pos {
                     0 => 0,
                     _ => pos + 1
@@ -83,7 +83,7 @@ impl GapBuffer {
         while pos < BUFFER_LIMIT {
             pos += 1;
 
-            if self.bytes[pos] == keys::LINE_FEED {
+            if self.bytes[pos] == keys::LF {
                 return match pos {
                     0 => 0,
                     _ => pos - 1
@@ -111,7 +111,7 @@ impl GapBuffer {
 
         for pos in span {
             lf_pos[lf_count] = pos;
-            if self.bytes[pos] == keys::LINE_FEED {
+            if self.bytes[pos] == keys::LF {
                 lf_count += 1;
                 if lf_count == 2 {
                     return lf_count;

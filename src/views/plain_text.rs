@@ -14,9 +14,9 @@ pub fn render(buffer: &mut impl Write, text: &[u8]) -> Result<(), EditorError> {
     let last = text.len() - 1;
 
     for i in 0..last {
-        if text[i] == keys::LINE_FEED {
+        if text[i] == keys::LF {
             buffer.write(&text[last_cr..i])?;
-            buffer.write(settings::LINE_FEED)?;
+            buffer.write(settings::LF)?;
             last_cr = i + 1;
         }
     }
