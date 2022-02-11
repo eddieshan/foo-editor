@@ -16,6 +16,7 @@ struct PieceCursor {
 
 pub struct PieceChain {
     buffer: Vec<u8>,
+    len: usize,
     pieces: Vec<Piece>,
     last_piece: usize
 }
@@ -45,6 +46,7 @@ impl PieceChain {
         pieces.push(Default::default());
         PieceChain {
             buffer: Vec::with_capacity(capacity),
+            len: 0,
             pieces: pieces,
             last_piece: 0
         }
@@ -79,18 +81,20 @@ impl PieceChain {
         }
 
         self.buffer.push(val);
+        self.len += 1;
     }
 
     pub fn append(&mut self, data: &[u8]) {
-        self.buffer.extend_from_slice(data);
         if let Some(piece) = self.pieces.last_mut() {
-            piece.size += data.len();
+            let chunk_size = data.len();
+            self.buffer.extend_from_slice(data);
+            self.len += chunk_size;
+            piece.size += chunk_size;
         }
     }
 
     pub fn erase(&mut self, pos: usize) {
-        let size = self.buffer.len();
-        if size > 0 && pos < size {
+        if pos < self.len {
             let cursor = find_cursor(pos, &self.pieces);
             let mut piece = &mut self.pieces[cursor.pos];
     
@@ -113,6 +117,8 @@ impl PieceChain {
                 self.pieces.insert(new_pos, piece_right);    
                 self.last_piece = new_pos;
             }
+
+            self.len -= 1;
         }
     }
 
@@ -124,7 +130,7 @@ impl PieceChain {
     }
 
     pub fn len(&self) -> usize {
-        self.buffer.len()
+        self.len
     }
 
     pub fn capacity(&self) -> usize {
