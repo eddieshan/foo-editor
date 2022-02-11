@@ -97,21 +97,20 @@ impl PieceChain {
         if pos < self.len {
             let cursor = find_cursor(pos, &self.pieces);
             let mut piece = &mut self.pieces[cursor.pos];
-    
+   
             if cursor.offset == 0 {
                 piece.start += 1;
                 piece.size -= 1;
             } else if cursor.offset == piece.size - 1 {
                 piece.size -= 1;
             } else {
-                let new_size = cursor.offset;
-                let right_start = piece.start + new_size + 1;
+                let right_start = piece.start + cursor.offset + 1;
                 let piece_right = Piece {
                     start: right_start,
                     size: piece.size - cursor.offset - 1
                 };
     
-                piece.size = new_size;
+                piece.size = cursor.offset;
     
                 let new_pos = cursor.pos + 1;
                 self.pieces.insert(new_pos, piece_right);    
