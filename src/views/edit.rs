@@ -9,13 +9,13 @@ use super::{plain_text, gutter, status_bar};
 
 pub fn render(buffer: &mut impl Write, state: &EditorState) -> Result<(), EditorError> {
     let n_lines = state.text.iter()
-        .filter(|&&v| v == keys::LINE_FEED)
+        .filter(|&&v| v == keys::LF)
         .count() + 1;
 
     let mut cursor = Position { x: 1, y: 1 };
 
-    state.text[0..state.buffer.gap].iter().for_each(|&v| {
-        if v == keys::LINE_FEED {
+    state.text[0..state.pos].iter().for_each(|&v| {
+        if v == keys::LF {
             cursor.y += 1;
             cursor.x = 1;
         } else {

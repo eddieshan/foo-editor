@@ -14,7 +14,7 @@ pub trait Vt100 {
     fn pos(&mut self, row: usize, col: usize) -> Result<()>;
 }
 
-impl<T> Vt100 for T where T: Write {
+impl<T: Write> Vt100 for T {
     fn pos(&mut self, row: usize, col: usize) -> Result<()> {
         self.write(SEQ)?;
         let mut pos_seq: [u8; 7] = [0, 0, 0, b';', 0, 0, 0];

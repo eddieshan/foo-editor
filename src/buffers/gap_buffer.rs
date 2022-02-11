@@ -1,7 +1,6 @@
 use std::cmp;
 use std::io::{Result};
 
-use crate::config::settings;
 use crate::text::keys;
 
 const KB: usize = 1024;
@@ -57,7 +56,7 @@ impl GapBuffer {
         while pos > 0 {
             pos -= 1;
 
-            if self.bytes[pos] == keys::LINE_FEED {
+            if self.bytes[pos] == keys::LF {
                 return match pos {
                     0 => 0,
                     _ => pos + 1
@@ -84,7 +83,7 @@ impl GapBuffer {
         while pos < BUFFER_LIMIT {
             pos += 1;
 
-            if self.bytes[pos] == keys::LINE_FEED {
+            if self.bytes[pos] == keys::LF {
                 return match pos {
                     0 => 0,
                     _ => pos - 1
@@ -112,7 +111,7 @@ impl GapBuffer {
 
         for pos in span {
             lf_pos[lf_count] = pos;
-            if self.bytes[pos] == keys::LINE_FEED {
+            if self.bytes[pos] == keys::LF {
                 lf_count += 1;
                 if lf_count == 2 {
                     return lf_count;
@@ -180,22 +179,6 @@ impl GapBuffer {
         &self.bytes[0..self.gap]
     }
  
-    // fn copy_section(&self, buffer: &mut [u8], from: usize, to: usize) {
-    //     let mut pos: usize = 0;
-    //     let line_break_size = settings::LINE_FEED.len();
-    //     for i in from..to {
-    //         if self.bytes[i] == keys::LINE_FEED {
-    //             for j in 0..line_break_size {
-    //                 buffer[pos + j] = settings::LINE_FEED[j];
-    //             }
-    //             pos += line_break_size;
-    //         } else {
-    //             buffer[pos] = self.bytes[i];
-    //             pos += 1;
-    //         }
-    //     }
-    // }    
-
     fn copy_section(&self, buffer: &mut Vec<u8>, from: usize, to: usize) {
         for i in from..to {
             buffer.push(self.bytes[i]);

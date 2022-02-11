@@ -1,10 +1,9 @@
 use std::io::Write;
 
-use crate::core::{errors::*};
+use crate::core::errors::*;
 use crate::term::vt100::*;
 use crate::text::keys;
 use crate::config::settings;
-use crate::models::editor::EditorState;
 
 pub fn render(buffer: &mut impl Write, text: &[u8]) -> Result<(), EditorError> {
     
@@ -14,22 +13,15 @@ pub fn render(buffer: &mut impl Write, text: &[u8]) -> Result<(), EditorError> {
     let mut last_cr = 0;
     let last = text.len() - 1;
 
-    for i in 0..text.len() {
-        let is_line_break = text[i] == keys::LINE_FEED;
-
-        if is_line_break || i == last {
-            let end_of_line = match is_line_break {
-                true  => i,
-                false => i + 1
-            };
-            buffer.write(&text[last_cr..end_of_line])?;
-
-            if is_line_break {
-                buffer.write(settings::LINE_FEED)?;
-                last_cr = i + 1;
-            }
+    for i in 0..last {
+        if text[i] == keys::LF {
+            buffer.write(&text[last_cr..i])?;
+            buffer.write(settings::LF)?;
+            last_cr = i + 1;
         }
     }
+
+    buffer.write(&text[last_cr..=last])?;
 
     Ok(())
 }

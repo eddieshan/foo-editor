@@ -5,7 +5,6 @@ use crate::core::errors::*;
 
 use crate::text::{keys, keys::ReadKey};
 use crate::config::theme;
-use crate::buffers::gap_buffer::GapBuffer;
 use crate::term::{common::*, vt100};
 use crate::models::editor::EditorState;
 use crate::controllers::*;
@@ -26,11 +25,7 @@ pub fn run(term: &impl Term) -> Result<(), EditorError> {
     let mut stdout = io::stdout();
     let mut stdin = io::stdin();
 
-    let mut state = EditorState {
-        term_info: term.info()?,
-        buffer: GapBuffer::new(),
-        text: Vec::with_capacity(1024)
-    };
+    let mut state = EditorState::new(term.info()?);
 
     let mut action_result = ActionResult {
         view: views::edit::render,
@@ -45,9 +40,7 @@ pub fn run(term: &impl Term) -> Result<(), EditorError> {
         action_result = match key.code {
             keys::CTRL_Q => { break; },
             _            => (action_result.controller)(&key, &mut state)?
-        };
-    
-        state.buffer.copy_to(&mut state.text)?;
+        };    
 
         render(&mut stdout, action_result.view, &state)?;
     }
