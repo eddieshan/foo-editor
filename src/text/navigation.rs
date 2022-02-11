@@ -1,5 +1,5 @@
 use crate::core::utils::*;
-use crate::text::keys;
+use crate::text::keys::*;
 
 pub fn right(text: &[u8], pos: usize) -> usize {
     if pos < text.len() {
@@ -18,38 +18,32 @@ pub fn left(text: &[u8], pos: usize) -> usize {
 }
 
 pub fn down(text: &[u8], pos: usize) -> usize {
-    if let Some(line_end) = text.aposition(keys::LF, pos) {
-        let line_below_end = text.aposition(keys::LF, line_end + 1).unwrap_or(text.len());
-        let line_above_end = text.raposition(keys::LF, pos).unwrap_or(0);
-        let distance_to_start = pos - line_above_end;
-
-        let offset = if line_above_end == 0 { 1 } else { 0 };
-        let new_pos = line_end + distance_to_start + offset;
+    if let Some(eol) = text.apos(LF, pos) {
+        let eol_below = text.apos(LF, eol + 1).unwrap_or(text.len());
+        let offset = text.rapos(LF, pos).map_or(pos + 1, |eol_above| pos - eol_above);
+        let new_pos = eol + offset;
         
-        std::cmp::min(new_pos, line_below_end)
+        std::cmp::min(new_pos, eol_below)
     } else {
         pos
     }
 }
 
 pub fn up(text: &[u8], pos: usize) -> usize {
-    if let Some(line_above_end) = text.raposition(keys::LF, pos) {
-        let line_above_start = text.raposition(keys::LF, line_above_end - 1).unwrap_or(0);
-        let distance_to_start = pos - line_above_end;
+    if let Some(eol_above) = text.rapos(LF, pos) {
+        let offset = pos - eol_above;
+        let new_pos = text.rapos(LF, eol_above).map_or(offset - 1, |sol_above| offset + sol_above);
 
-        let offset = if line_above_start == 0 { 1 } else { 0 };
-        let new_pos = line_above_start + distance_to_start - offset;
-
-        std::cmp::min(new_pos, line_above_end)
+        std::cmp::min(new_pos, eol_above)
     } else {
         pos
     }
 }
 
 pub fn start(text: &[u8], pos: usize) -> usize {
-    text.raposition(keys::LF, pos).map_or(0, |i| i + 1)
+    text.rapos(LF, pos).map_or(0, |i| i + 1)
 }
 
 pub fn end(text: &[u8], pos: usize) -> usize {
-    text.aposition(keys::LF, pos).unwrap_or(text.len())
+    text.apos(LF, pos).unwrap_or(text.len())
 }
