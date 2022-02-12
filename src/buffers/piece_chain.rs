@@ -41,21 +41,36 @@ pub struct PieceChain {
     pieces: Vec<Piece>
 }
 
+// fn find_cursor(pos: usize, pieces: &Vec<Piece>) -> Option<PieceCursor> {
+//     let mut count = 0;
+//     let limit = pos + 1;
+
+//     for i in 0..pieces.len() {
+//         let next_count = count + pieces[i].size;
+//         if next_count < limit {
+//             count = next_count;
+//         } else {
+//             return Some(PieceCursor { pos: i, offset: pos - count });
+//         }
+//     }
+
+//     None
+// }
+
 fn find_cursor(pos: usize, pieces: &Vec<Piece>) -> Option<PieceCursor> {
-    let mut count = 0;
-    let limit = pos + 1;
+    let mut offset = pos;
 
     for i in 0..pieces.len() {
-        let next_count = count + pieces[i].size;
-        if next_count < limit {
-            count = next_count;
+        if pieces[i].size <= offset {
+            offset -= pieces[i].size;
         } else {
-            return Some(PieceCursor { pos: i, offset: pos - count });
+            return Some(PieceCursor { pos: i, offset: offset });
         }
     }
 
     None
 }
+
 
 impl PieceChain {
 
@@ -71,30 +86,31 @@ impl PieceChain {
     pub fn insert(&mut self, val: u8, pos: usize) {
         let end_pos = self.buffer.len();
 
-        match (pos, self.pieces.last_mut()) {
-            (p, Some(piece)) if p == end_pos => piece.size += 1,
-            (_, _) => {
-                let cursor = find_cursor(pos, &self.pieces)
-                    .unwrap_or(PieceCursor { pos: self.pieces.len(), offset: 0 });
-                let new_piece = Piece { start: end_pos, size: 1 };
+        if pos == end_pos {
+            // The last piece can be unwrapped safely because the piece chain
+            // must contain by definition at least one piece. 
+            // If the piece chain has zero pieces, that's a an error that needs
+            // to be detected so a panic from unwrap is convenient.
+            let piece = self.pieces.last_mut().unwrap();
+            piece.size += 1;
+        } else if let Some(cursor) = find_cursor(pos, &self.pieces) {            
+            let new_piece = Piece { start: end_pos, size: 1 };
 
-                if cursor.offset == 0 {
-                    self.pieces.insert(cursor.pos, new_piece);
-                } else {
-                    let mut piece = &mut self.pieces[cursor.pos];
-                    let piece_right = piece.split_right(cursor.offset);
-                    piece.resize(cursor.offset);
+            if cursor.offset == 0 {
+                self.pieces.insert(cursor.pos, new_piece);
+            } else {
+                let piece = &mut self.pieces[cursor.pos];
+                let piece_right = piece.split_right(cursor.offset);
+                piece.resize(cursor.offset);
 
-                    let new_pos = cursor.pos + 1;
-
-                    self.pieces.insert(new_pos, piece_right);
-                    self.pieces.insert(new_pos, new_piece);
-                }                
+                let new_pos = cursor.pos + 1;
+                self.pieces.insert(new_pos, piece_right);
+                self.pieces.insert(new_pos, new_piece);
             }
-        };
+        }
 
         self.buffer.push(val);
-    }    
+    }
 
     pub fn append(&mut self, data: &[u8]) {
         if let Some(piece) = self.pieces.last_mut() {
@@ -107,7 +123,7 @@ impl PieceChain {
     pub fn erase(&mut self, pos: usize) {
         match find_cursor(pos, &self.pieces) {
             Some(cursor) if self.pieces[cursor.pos].size > 0 => {
-                let mut piece = &mut self.pieces[cursor.pos];
+                let piece = &mut self.pieces[cursor.pos];
 
                 match cursor.offset {
                     0 => piece.shrink_right(),
