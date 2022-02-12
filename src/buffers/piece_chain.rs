@@ -9,6 +9,28 @@ impl Default for Piece {
     }
 }
 
+impl Piece {
+    fn split_right(&self, offset: usize) -> Piece {
+        Piece { 
+            start: self.start + offset, 
+            size: self.size - offset 
+        }
+    }
+
+    fn shrink_left(&mut self) {
+        self.size -= 1;
+    }
+
+    fn shrink_right(&mut self) {
+        self.start += 1;
+        self.size -= 1;
+    }
+    
+    fn resize(&mut self, new_size: usize) {
+        self.size = new_size;
+    }    
+}
+
 struct PieceCursor {
     pos: usize,
     offset: usize
@@ -16,27 +38,23 @@ struct PieceCursor {
 
 pub struct PieceChain {
     buffer: Vec<u8>,
-    len: usize,
-    pieces: Vec<Piece>,
-    last_piece: usize
+    pieces: Vec<Piece>
 }
 
-fn find_cursor(pos: usize, pieces: &Vec<Piece>) -> PieceCursor {
+fn find_cursor(pos: usize, pieces: &Vec<Piece>) -> Option<PieceCursor> {
     let mut count = 0;
+    let limit = pos + 1;
 
     for i in 0..pieces.len() {
-        let piece = &pieces[i];
-        let next_count = count + piece.size;
-        if next_count == 0 {
-            return PieceCursor { pos: 0, offset: 0 };
-        } else if next_count < pos + 1 {
+        let next_count = count + pieces[i].size;
+        if next_count < limit {
             count = next_count;
         } else {
-            return PieceCursor { pos: i, offset: pos - count };
+            return Some(PieceCursor { pos: i, offset: pos - count });
         }
     }
 
-    PieceCursor { pos: pieces.len(), offset: 0 }
+    None
 }
 
 impl PieceChain {
@@ -46,90 +64,71 @@ impl PieceChain {
         pieces.push(Default::default());
         PieceChain {
             buffer: Vec::with_capacity(capacity),
-            len: 0,
-            pieces: pieces,
-            last_piece: 0
+            pieces: pieces
         }
     }
-    
+
     pub fn insert(&mut self, val: u8, pos: usize) {
-        if pos == self.len() {
-            if let Some(piece) = self.pieces.last_mut() {
-                piece.size += 1;
+        let end_pos = self.buffer.len();
+
+        match (pos, self.pieces.last_mut()) {
+            (p, Some(piece)) if p == end_pos => piece.size += 1,
+            (_, _) => {
+                let cursor = find_cursor(pos, &self.pieces)
+                    .unwrap_or(PieceCursor { pos: self.pieces.len(), offset: 0 });
+                let new_piece = Piece { start: end_pos, size: 1 };
+
+                if cursor.offset == 0 {
+                    self.pieces.insert(cursor.pos, new_piece);
+                } else {
+                    let mut piece = &mut self.pieces[cursor.pos];
+                    let piece_right = piece.split_right(cursor.offset);
+                    piece.resize(cursor.offset);
+
+                    let new_pos = cursor.pos + 1;
+
+                    self.pieces.insert(new_pos, piece_right);
+                    self.pieces.insert(new_pos, new_piece);
+                }                
             }
-        } else {
-            let cursor = find_cursor(pos, &self.pieces);
-            let new_piece = Piece { start: self.len(), size: 1 };
-
-            if cursor.offset == 0 {
-                self.pieces.insert(cursor.pos, new_piece);
-                self.last_piece = cursor.pos;
-            } else {
-                let mut piece = &mut self.pieces[cursor.pos];
-                let index = piece.start + cursor.offset;
-                let piece_right = Piece { start: index, size: piece.size - cursor.offset };
-
-                piece.size = cursor.offset;
-
-                let new_pos = cursor.pos + 1;
-
-                self.pieces.insert(new_pos, piece_right);
-                self.pieces.insert(new_pos, new_piece);
-
-                self.last_piece = new_pos;
-            }
-        }
+        };
 
         self.buffer.push(val);
-        self.len += 1;
-    }
+    }    
 
     pub fn append(&mut self, data: &[u8]) {
         if let Some(piece) = self.pieces.last_mut() {
             let chunk_size = data.len();
             self.buffer.extend_from_slice(data);
-            self.len += chunk_size;
             piece.size += chunk_size;
         }
     }
 
     pub fn erase(&mut self, pos: usize) {
-        if pos < self.len {
-            let cursor = find_cursor(pos, &self.pieces);
-            let mut piece = &mut self.pieces[cursor.pos];
-   
-            if cursor.offset == 0 {
-                piece.start += 1;
-                piece.size -= 1;
-            } else if cursor.offset == piece.size - 1 {
-                piece.size -= 1;
-            } else {
-                let right_start = piece.start + cursor.offset + 1;
-                let piece_right = Piece {
-                    start: right_start,
-                    size: piece.size - cursor.offset - 1
-                };
-    
-                piece.size = cursor.offset;
-    
-                let new_pos = cursor.pos + 1;
-                self.pieces.insert(new_pos, piece_right);    
-                self.last_piece = new_pos;
-            }
+        match find_cursor(pos, &self.pieces) {
+            Some(cursor) if self.pieces[cursor.pos].size > 0 => {
+                let mut piece = &mut self.pieces[cursor.pos];
 
-            self.len -= 1;
+                match cursor.offset {
+                    0 => piece.shrink_right(),
+                    offset if offset == piece.size - 1 => piece.shrink_left(),
+                    _ => {
+                        let piece_right = piece.split_right(cursor.offset + 1);
+                        piece.resize(cursor.offset);
+
+                        let new_pos = cursor.pos + 1;
+                        self.pieces.insert(new_pos, piece_right); 
+                    }
+                };   
+            },
+            _ => { }
         }
-    }
+    }    
 
     pub fn clear(&mut self) {
         self.buffer.clear();
         self.pieces.clear();
-        self.last_piece = 0;
         self.pieces.push(Default::default());
-    }
-
-    pub fn len(&self) -> usize {
-        self.len
     }
 
     pub fn capacity(&self) -> usize {
