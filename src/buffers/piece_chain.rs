@@ -17,19 +17,19 @@ struct PieceCursor {
 pub struct PieceChain {
     buffer: Vec<u8>,
     len: usize,
-    pieces: Vec<Piece>,
-    last_piece: usize
+    pieces: Vec<Piece>
 }
 
 fn find_cursor(pos: usize, pieces: &Vec<Piece>) -> PieceCursor {
     let mut count = 0;
+    let limit = pos + 1;
 
     for i in 0..pieces.len() {
         let piece = &pieces[i];
         let next_count = count + piece.size;
         if next_count == 0 {
             return PieceCursor { pos: 0, offset: 0 };
-        } else if next_count < pos + 1 {
+        } else if next_count < limit {
             count = next_count;
         } else {
             return PieceCursor { pos: i, offset: pos - count };
@@ -47,8 +47,7 @@ impl PieceChain {
         PieceChain {
             buffer: Vec::with_capacity(capacity),
             len: 0,
-            pieces: pieces,
-            last_piece: 0
+            pieces: pieces
         }
     }
     
@@ -63,7 +62,6 @@ impl PieceChain {
 
             if cursor.offset == 0 {
                 self.pieces.insert(cursor.pos, new_piece);
-                self.last_piece = cursor.pos;
             } else {
                 let mut piece = &mut self.pieces[cursor.pos];
                 let index = piece.start + cursor.offset;
@@ -75,8 +73,6 @@ impl PieceChain {
 
                 self.pieces.insert(new_pos, piece_right);
                 self.pieces.insert(new_pos, new_piece);
-
-                self.last_piece = new_pos;
             }
         }
 
@@ -114,7 +110,6 @@ impl PieceChain {
     
                 let new_pos = cursor.pos + 1;
                 self.pieces.insert(new_pos, piece_right);    
-                self.last_piece = new_pos;
             }
 
             self.len -= 1;
@@ -124,7 +119,6 @@ impl PieceChain {
     pub fn clear(&mut self) {
         self.buffer.clear();
         self.pieces.clear();
-        self.last_piece = 0;
         self.pieces.push(Default::default());
     }
 
