@@ -16,7 +16,6 @@ struct PieceCursor {
 
 pub struct PieceChain {
     buffer: Vec<u8>,
-    len: usize,
     pieces: Vec<Piece>
 }
 
@@ -46,19 +45,19 @@ impl PieceChain {
         pieces.push(Default::default());
         PieceChain {
             buffer: Vec::with_capacity(capacity),
-            len: 0,
             pieces: pieces
         }
     }
     
     pub fn insert(&mut self, val: u8, pos: usize) {
-        if pos == self.len() {
+        let end_pos = self.buffer.len();
+        if pos == end_pos {
             if let Some(piece) = self.pieces.last_mut() {
                 piece.size += 1;
             }
         } else {
             let cursor = find_cursor(pos, &self.pieces);
-            let new_piece = Piece { start: self.len(), size: 1 };
+            let new_piece = Piece { start: end_pos, size: 1 };
 
             if cursor.offset == 0 {
                 self.pieces.insert(cursor.pos, new_piece);
@@ -77,20 +76,18 @@ impl PieceChain {
         }
 
         self.buffer.push(val);
-        self.len += 1;
     }
 
     pub fn append(&mut self, data: &[u8]) {
         if let Some(piece) = self.pieces.last_mut() {
             let chunk_size = data.len();
             self.buffer.extend_from_slice(data);
-            self.len += chunk_size;
             piece.size += chunk_size;
         }
     }
 
     pub fn erase(&mut self, pos: usize) {
-        if pos < self.len {
+        if pos < self.buffer.len() {
             let cursor = find_cursor(pos, &self.pieces);
             let mut piece = &mut self.pieces[cursor.pos];
    
@@ -111,8 +108,6 @@ impl PieceChain {
                 let new_pos = cursor.pos + 1;
                 self.pieces.insert(new_pos, piece_right);    
             }
-
-            self.len -= 1;
         }
     }
 
@@ -120,10 +115,6 @@ impl PieceChain {
         self.buffer.clear();
         self.pieces.clear();
         self.pieces.push(Default::default());
-    }
-
-    pub fn len(&self) -> usize {
-        self.len
     }
 
     pub fn capacity(&self) -> usize {
