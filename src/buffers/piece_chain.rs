@@ -46,16 +46,14 @@ pub struct PieceChain {
 }
 
 fn find_cursor(pos: usize, pieces: &Vec<Piece>) -> Option<PieceCursor> {
-    let mut count = 0;
-    let limit = pos + 1;
+    let mut offset = pos;
 
     for i in 0..pieces.len() {
         let piece = &pieces[i];
-        let next_count = count + piece.size;
-        if next_count < limit {
-            count = next_count;
+        if offset >= piece.size {
+            offset -= piece.size;
         } else {
-            return Some(PieceCursor { pos: i, offset: pos - count });
+            return Some(PieceCursor { pos: i, offset: offset });
         }
     }
 
