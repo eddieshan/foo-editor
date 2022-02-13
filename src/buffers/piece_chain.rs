@@ -41,36 +41,24 @@ pub struct PieceChain {
     pieces: Vec<Piece>
 }
 
-// fn find_cursor(pos: usize, pieces: &Vec<Piece>) -> Option<PieceCursor> {
-//     let mut count = 0;
-//     let limit = pos + 1;
-
-//     for i in 0..pieces.len() {
-//         let next_count = count + pieces[i].size;
-//         if next_count < limit {
-//             count = next_count;
-//         } else {
-//             return Some(PieceCursor { pos: i, offset: pos - count });
-//         }
-//     }
-
-//     None
-// }
-
-fn find_cursor(pos: usize, pieces: &Vec<Piece>) -> Option<PieceCursor> {
-    let mut offset = pos;
+fn find_cursor(pos: usize, pieces: &Vec<Piece>) -> PieceCursor {
+    let mut count = 0;
+    let limit = pos + 1;
 
     for i in 0..pieces.len() {
-        if pieces[i].size <= offset {
-            offset -= pieces[i].size;
+        let piece = &pieces[i];
+        let next_count = count + piece.size;
+        if next_count == 0 {
+            return PieceCursor { pos: 0, offset: 0 };
+        } else if next_count < limit {
+            count = next_count;
         } else {
-            return Some(PieceCursor { pos: i, offset: offset });
+            return PieceCursor { pos: i, offset: pos - count };
         }
     }
 
-    None
+    PieceCursor { pos: pieces.len(), offset: 0 }
 }
-
 
 impl PieceChain {
 
@@ -82,18 +70,15 @@ impl PieceChain {
             pieces: pieces
         }
     }
-
+    
     pub fn insert(&mut self, val: u8, pos: usize) {
         let end_pos = self.buffer.len();
-
         if pos == end_pos {
-            // The last piece can be unwrapped safely because the piece chain
-            // must contain by definition at least one piece. 
-            // If the piece chain has zero pieces, that's a an error that needs
-            // to be detected so a panic from unwrap is convenient.
-            let piece = self.pieces.last_mut().unwrap();
-            piece.size += 1;
-        } else if let Some(cursor) = find_cursor(pos, &self.pieces) {            
+            if let Some(piece) = self.pieces.last_mut() {
+                piece.size += 1;
+            }
+        } else {
+            let cursor = find_cursor(pos, &self.pieces);
             let new_piece = Piece { start: end_pos, size: 1 };
 
             if cursor.offset == 0 {
@@ -104,6 +89,7 @@ impl PieceChain {
                 piece.resize(cursor.offset);
 
                 let new_pos = cursor.pos + 1;
+
                 self.pieces.insert(new_pos, piece_right);
                 self.pieces.insert(new_pos, new_piece);
             }
@@ -121,25 +107,28 @@ impl PieceChain {
     }
 
     pub fn erase(&mut self, pos: usize) {
-        match find_cursor(pos, &self.pieces) {
-            Some(cursor) if self.pieces[cursor.pos].size > 0 => {
-                let piece = &mut self.pieces[cursor.pos];
+        if pos < self.buffer.len() {
+            let cursor = find_cursor(pos, &self.pieces);
+            let n_pieces = self.pieces.len();
+            let piece = &mut self.pieces[cursor.pos];
 
-                match cursor.offset {
-                    0 => piece.shrink_right(),
-                    offset if offset == piece.size - 1 => piece.shrink_left(),
-                    _ => {
-                        let piece_right = piece.split_right(cursor.offset + 1);
-                        piece.resize(cursor.offset);
-
-                        let new_pos = cursor.pos + 1;
-                        self.pieces.insert(new_pos, piece_right); 
-                    }
-                };   
-            },
-            _ => { }
+            if piece.size == 1 && n_pieces > 1 {
+                self.pieces.remove(cursor.pos);
+            } else if piece.size > 0 {
+                if cursor.offset == 0 {
+                    piece.shrink_right();
+                } else if cursor.offset == piece.size - 1 {
+                    piece.shrink_left();
+                } else {
+                    let piece_right = piece.split_right(cursor.offset + 1);
+                    piece.resize(cursor.offset);
+        
+                    let new_pos = cursor.pos + 1;
+                    self.pieces.insert(new_pos, piece_right);    
+                }
+            }
         }
-    }    
+    }
 
     pub fn clear(&mut self) {
         self.buffer.clear();
