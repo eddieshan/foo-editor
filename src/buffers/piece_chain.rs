@@ -17,6 +17,10 @@ impl Piece {
         }
     }
 
+    fn extend(&mut self, increment: usize) {
+        self.size += increment;
+    }    
+
     fn shrink_left(&mut self) {
         self.size -= 1;
     }
@@ -40,25 +44,6 @@ pub struct PieceChain {
     buffer: Vec<u8>,
     pieces: Vec<Piece>
 }
-
-// fn find_cursor(pos: usize, pieces: &Vec<Piece>) -> PieceCursor {
-//     let mut count = 0;
-//     let limit = pos + 1;
-
-//     for i in 0..pieces.len() {
-//         let piece = &pieces[i];
-//         let next_count = count + piece.size;
-//         if next_count == 0 {
-//             return PieceCursor { pos: 0, offset: 0 };
-//         } else if next_count < limit {
-//             count = next_count;
-//         } else {
-//             return PieceCursor { pos: i, offset: pos - count };
-//         }
-//     }
-
-//     PieceCursor { pos: pieces.len(), offset: 0 }
-// }
 
 fn find_cursor(pos: usize, pieces: &Vec<Piece>) -> Option<PieceCursor> {
     let mut count = 0;
@@ -105,8 +90,7 @@ impl PieceChain {
                 self.pieces.insert(new_pos, new_piece);
             }            
         } else if self.size() == self.buffer.len() {
-            let piece = self.pieces.last_mut().unwrap();
-            piece.size += 1;
+            self.pieces.last_mut().unwrap().extend(1);
         } else {
             self.pieces.push(Piece { start: self.buffer.len(), size: 1 });
         }
@@ -116,9 +100,8 @@ impl PieceChain {
 
     pub fn append(&mut self, data: &[u8]) {
         if let Some(piece) = self.pieces.last_mut() {
-            let chunk_size = data.len();
+            piece.extend(data.len());
             self.buffer.extend_from_slice(data);
-            piece.size += chunk_size;
         }
     }
 
