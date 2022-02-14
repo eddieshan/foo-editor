@@ -72,39 +72,37 @@ impl PieceChain {
     }
 
     pub fn insert(&mut self, val: u8, pos: usize) {
-        if let Some(cursor) = find_cursor(pos, &self.pieces) {
-            let new_piece = Piece { start: self.buffer.len(), size: 1 };
+        let last_pos = self.pieces.last().map_or(0, |p| p.start + p.size);
+        let size = self.buffer.len();
+        match (find_cursor(pos, &self.pieces), last_pos == size) {
+            (None, true)  => self.pieces.last_mut().unwrap().extend(1),
+            (None, false) => self.pieces.push(Piece { start: size, size: 1 }),
+            (Some(cursor), _) => {
+                let new_piece = Piece { start: size, size: 1 };
 
-            if cursor.offset == 0 {
-                self.pieces.insert(cursor.pos, new_piece);
-            } else {
-                let piece = &mut self.pieces[cursor.pos];
-                let piece_right = piece.split_right(cursor.offset);
-                piece.resize(cursor.offset);
-
-                let new_pos = cursor.pos + 1;
-
-                self.pieces.insert(new_pos, piece_right);
-                self.pieces.insert(new_pos, new_piece);
-            }            
-        } else if self.size() == self.buffer.len() {
-            self.pieces.last_mut().unwrap().extend(1);
-        } else {
-            self.pieces.push(Piece { start: self.buffer.len(), size: 1 });
+                if cursor.offset == 0 {
+                    self.pieces.insert(cursor.pos, new_piece);
+                } else {
+                    let piece = &mut self.pieces[cursor.pos];
+                    let piece_right = piece.split_right(cursor.offset);
+                    piece.resize(cursor.offset);
+    
+                    let new_pos = cursor.pos + 1;
+    
+                    self.pieces.insert(new_pos, piece_right);
+                    self.pieces.insert(new_pos, new_piece);
+                }
+            }
         }
 
         self.buffer.push(val);
-    }    
+    }
 
     pub fn append(&mut self, data: &[u8]) {
         if let Some(piece) = self.pieces.last_mut() {
             piece.extend(data.len());
             self.buffer.extend_from_slice(data);
         }
-    }
-
-    fn size(&self) -> usize {
-        self.pieces.last().map_or(0, |p| p.start + p.size)
     }
 
     pub fn erase(&mut self, pos: usize) {
