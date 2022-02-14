@@ -23,25 +23,28 @@ impl EditorState {
         }
     }
 
+    fn refresh(&mut self) {
+        self.text.clear();
+        for chunk in &self.buffer {
+            self.text.extend_from_slice(chunk);
+        }
+    }
+
     pub fn insert(&mut self, val: u8) {
         self.buffer.insert(val, self.pos);
         self.pos += 1;
-        self.buffer.copy_to(&mut self.text);
+        self.refresh();
     }
 
     pub fn erase(&mut self) {
         self.buffer.erase(self.pos);
-        self.buffer.copy_to(&mut self.text);        
+        self.refresh();
     }
 
     pub fn go_erase(&mut self, mv: fn(&[u8], usize) -> usize) {
         self.go_to(mv);
         self.erase();
     }
-
-    // pub fn go_by(&mut self, mv: fn(&[u8], usize, usize) -> usize, step: usize) {
-    //     self.pos = mv(&self.text, self.pos, step);
-    // }    
 
     pub fn go_to(&mut self, mv: fn(&[u8], usize) -> usize) {
         self.pos = mv(&self.text, self.pos);
