@@ -45,21 +45,6 @@ pub struct PieceChain {
     chain: Vec<Piece>
 }
 
-fn find_cursor(pos: usize, pieces: &Vec<Piece>) -> Option<PieceCursor> {
-    let mut offset = pos;
-
-    for i in 0..pieces.len() {
-        let piece = &pieces[i];
-        if offset >= piece.size {
-            offset -= piece.size;
-        } else {
-            return Some(PieceCursor { pos: i, offset: offset });
-        }
-    }
-
-    None
-}
-
 impl PieceChain {
 
     pub fn with_capacity(capacity: usize, n_pieces: usize) -> Self {
@@ -74,7 +59,7 @@ impl PieceChain {
     pub fn insert(&mut self, val: u8, pos: usize) {
         let last_pos = self.chain.last().map_or(0, |p| p.start + p.size);
         let size = self.buffer.len();
-        match (find_cursor(pos, &self.chain), last_pos == size) {
+        match (self.find(pos), last_pos == size) {
             (None, true)  => self.chain.last_mut().unwrap().extend(1),
             (None, false) => self.chain.push(Piece { start: size, size: 1 }),
             (Some(cursor), _) => {
@@ -106,7 +91,7 @@ impl PieceChain {
     }
 
     pub fn erase(&mut self, pos: usize) {
-        if let Some(cursor) = find_cursor(pos, &self.chain) {
+        if let Some(cursor) = self.find(pos) {
             let n_pieces = self.chain.len();
             let piece = &mut self.chain[cursor.pos];
 
@@ -144,5 +129,18 @@ impl PieceChain {
             let end = piece.start + piece.size;
             buffer.extend_from_slice(&self.buffer[piece.start..end]);
         }
+    }
+
+    fn find(&self, pos: usize) -> Option<PieceCursor> {
+        let mut offset = pos;
+    
+        for i in 0..self.chain.len() {
+            match self.chain[i].size {
+                size if offset >= size => offset -= size,
+                size => return Some(PieceCursor { pos: i, offset: offset })
+            }
+        }
+    
+        None
     }    
 }
