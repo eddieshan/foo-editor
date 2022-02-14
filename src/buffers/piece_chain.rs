@@ -45,6 +45,40 @@ pub struct PieceChain {
     chain: Vec<Piece>
 }
 
+pub struct PieceChainIterator<'a> {
+    buffer: &'a [u8],
+    chain: &'a [Piece],
+    pos: usize
+}
+
+impl<'a> Iterator for PieceChainIterator<'a> {
+    type Item = &'a [u8];
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.pos == self.chain.len() {
+            None
+        } else {            
+            let start = self.chain[self.pos].start;
+            let end = start + self.chain[self.pos].size;
+            self.pos += 1;
+            Some(&self.buffer[start..end])
+        }
+    }
+}
+
+impl<'a> IntoIterator for &'a PieceChain {
+    type Item = &'a [u8];
+    type IntoIter = PieceChainIterator<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        PieceChainIterator {
+            buffer: &self.buffer,
+            chain: &self.chain,
+            pos: 0
+        }
+    }
+}
+
 impl PieceChain {
 
     pub fn with_capacity(capacity: usize, n_pieces: usize) -> Self {
@@ -123,14 +157,6 @@ impl PieceChain {
         self.buffer.capacity()
     }
 
-    pub fn copy_to(&self, buffer: &mut Vec<u8>) {
-        buffer.clear();
-        for piece in self.chain.iter() {
-            let end = piece.start + piece.size;
-            buffer.extend_from_slice(&self.buffer[piece.start..end]);
-        }
-    }
-
     fn find(&self, pos: usize) -> Option<PieceCursor> {
         let mut offset = pos;
     
@@ -142,5 +168,13 @@ impl PieceChain {
         }
     
         None
+    }
+
+    pub fn iter(&self) -> PieceChainIterator {
+        PieceChainIterator {
+            buffer: &self.buffer,
+            chain: &self.chain,
+            pos: 0
+        }
     }    
 }
