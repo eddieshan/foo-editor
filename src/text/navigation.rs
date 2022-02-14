@@ -9,7 +9,7 @@ pub fn right(text: &[u8], pos: usize) -> usize {
     }
 }
 
-pub fn left(text: &[u8], pos: usize) -> usize {
+pub fn left(_: &[u8], pos: usize) -> usize {
     if pos > 0 {
         pos - 1
     } else {

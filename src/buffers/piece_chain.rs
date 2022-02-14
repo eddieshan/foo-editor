@@ -137,7 +137,7 @@ impl PieceChain {
         for i in 0..self.chain.len() {
             match self.chain[i].size {
                 size if offset >= size => offset -= size,
-                size => return Some(PieceCursor { pos: i, offset: offset })
+                _ => return Some(PieceCursor { pos: i, offset: offset })
             }
         }
     
