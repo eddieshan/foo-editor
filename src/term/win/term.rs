@@ -1,6 +1,6 @@
 use std::ptr;
 use std::convert::TryFrom;
-
+use crate::core:: {errors::*, geometry::*};
 use crate::{term::common::*, term::win::bindings::*};
 
 // This is annoying. The trait should be just From instead of TryFrom.
@@ -49,7 +49,7 @@ impl Term for WinTerm {
         }
 
         match (Size::try_from(buffer_info.dwSize), Size::try_from(buffer_info.dwMaximumWindowSize)) {
-            (Ok(buffer_size), Ok(window_size)) => Ok(window_size),
+            (Ok(_), Ok(window_size)) => Ok(window_size),
             _ => Err(TermError::InvalidTermAttributes)
         }
     }
