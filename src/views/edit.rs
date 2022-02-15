@@ -28,7 +28,7 @@ pub fn render(buffer: &mut impl Write, state: &EditorState) -> Result<(), Editor
     }
 
     gutter::render(buffer, cursor.y, n_lines)?;
-    status_bar::render(buffer, &cursor, &state.term_info)?;
+    status_bar::render(buffer, &cursor, &state.window_size)?;
     
     let screen_pos = Position { x: cursor.x + settings::GUTTER_WIDTH, y: cursor.y };
     

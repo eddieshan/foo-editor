@@ -1,11 +1,11 @@
 use std::ops::Range;
+use crate::core::geometry::Size;
 use crate::core::utils::AbsPos;
 use crate::text::keys::*;
-use crate::term::common::*;
 use crate::buffers::piece_chain::PieceChain;
 
 pub struct EditorState {
-    pub term_info: TermInfo,
+    pub window_size: Size,
     buffer: PieceChain,
     pub text: Vec<u8>,
     pub clip_region: Range<usize>,
@@ -26,13 +26,13 @@ fn slide_window_up(text: &[u8], new_pos: usize, n_rows: usize) -> Range<usize> {
 
 impl EditorState {
 
-    pub fn new(term_info: TermInfo) -> Self {
-        let screen_buffer_size = term_info.screen_size.width*term_info.screen_size.height;
+    pub fn new(window_size: Size) -> Self {
+        let screen_buffer_size = window_size.width*window_size.height;
         let buffer_size = screen_buffer_size*10;
         let n_pieces = buffer_size/2;
 
         EditorState {
-            term_info: term_info,
+            window_size: window_size,
             buffer: PieceChain::with_capacity(buffer_size, n_pieces),
             text: Vec::with_capacity(screen_buffer_size),
             clip_region: Range { start: 0, end: 0 },
@@ -67,20 +67,10 @@ impl EditorState {
         let new_pos = mv(&self.text, self.pos);
 
         if new_pos > self.clip_region.end {
-            self.clip_region = slide_window_down(&self.text, new_pos, self.term_info.screen_size.height);
+            self.clip_region = slide_window_down(&self.text, new_pos, self.window_size.height);
         } else if new_pos < self.clip_region.start {
-            self.clip_region = slide_window_up(&self.text, new_pos, self.term_info.screen_size.height);
+            self.clip_region = slide_window_up(&self.text, new_pos, self.window_size.height);
         }
         self.pos = new_pos;
     }
-
-    // fn update_pos(&mut self, new_pos: usize) {
-    //     if new_pos > self.clip_region.end {
-    //         self.clip_region = slide_window_down(&self.text, new_pos, self.term_info.screen_size.height);
-    //     } else if new_pos < self.clip_region.start {
-    //         self.clip_region = slide_window_up(&self.text, new_pos, self.term_info.screen_size.height);
-    //     }
-    
-    //     self.pos = new_pos;
-    // }
 }
