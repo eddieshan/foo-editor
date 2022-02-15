@@ -6,7 +6,12 @@ pub trait AbsPos<T> {
     // Absolute position of item with value @val, starting from the left at @from.
     fn apos(&self, val: T, from: usize) -> Option<usize>;
     // Absolute position of item with value @val, starting from the right at @from.
-    fn rapos(&self, val: T, from: usize) -> Option<usize>;    
+    fn rapos(&self, val: T, from: usize) -> Option<usize>;
+
+    // Absolute position of nth item with value @val, starting from the left at @from.
+    fn apos_n(&self, val: T, n: usize, from: usize) -> Option<usize>;
+    // Absolute position of nth item with value @val, starting from the right at @from.
+    fn rapos_n(&self, val: T, n: usize, from: usize) -> Option<usize>;    
 }
 
 // TODO: AbsPos implementation for slices.
@@ -32,4 +37,30 @@ impl<T: std::cmp::PartialEq> AbsPos<T> for &[T] {
         }
         None
     }
+
+    fn apos_n(&self, val: T, n: usize, from: usize) -> Option<usize> {
+        let mut count = n;
+        for i in from..self.len() {
+            if self[i] == val {
+                count -= 1;
+                if count == 0 {
+                    return Some(i);
+                }                
+            }
+        }
+        None
+    }
+
+    fn rapos_n(&self, val: T, n: usize, from: usize) -> Option<usize> {
+        let mut count = n;
+        for i in (0..from).rev() {
+            if self[i] == val {
+                count -= 1;
+                if count == 0 {
+                    return Some(i);
+                }                
+            }
+        }
+        None
+    }    
 }
