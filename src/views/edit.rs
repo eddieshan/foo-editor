@@ -2,29 +2,18 @@ use std::io::Write;
 
 use crate::core::{errors::*, geometry::Position};
 use crate::term::vt100::*;
-use crate::text::keys;
+use crate::text::navigation;
 use crate::config::settings;
 use crate::models::editor::EditorState;
 use super::{plain_text, gutter, status_bar};
 
 pub fn render(buffer: &mut impl Write, state: &EditorState) -> Result<(), EditorError> {
-    let n_lines = state.text.iter()
-        .filter(|&&v| v == keys::LF)
-        .count() + 1;
+    let n_lines = navigation::n_lines(&state.text);
+    let cursor = navigation::cursor(&state.text[0..state.pos]);
 
-    let mut cursor = Position { x: 1, y: 1 };
-
-    state.text[0..state.pos].iter().for_each(|&v| {
-        if v == keys::LF {
-            cursor.y += 1;
-            cursor.x = 1;
-        } else {
-            cursor.x += 1;
-        }
-    });
-
-    if state.text.len() > 0 {
-        plain_text::render(buffer, &state.text)?;
+    let text = state.clipped_text();
+    if text.len() > 0 {
+        plain_text::render(buffer, text)?;
     }
 
     gutter::render(buffer, cursor.y, n_lines)?;

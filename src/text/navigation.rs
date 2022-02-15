@@ -1,5 +1,25 @@
 use crate::core::utils::*;
+use crate::core::geometry::*;
 use crate::text::keys::*;
+
+pub fn cursor(text: &[u8]) -> Position {
+    let mut cursor = Position { x: 1, y: 1 };
+
+    for &v in text {
+        if v == LF {
+            cursor.y += 1;
+            cursor.x = 1;
+        } else {
+            cursor.x += 1;
+        }
+    };
+
+    cursor
+}
+
+pub fn n_lines(text: &[u8]) -> usize {
+    text.iter().filter(|&&v| v == LF).count() + 1
+}
 
 pub fn right(text: &[u8], pos: usize) -> usize {
     if pos < text.len() {
