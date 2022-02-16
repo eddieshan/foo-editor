@@ -42,7 +42,7 @@ pub struct EditorState {
 impl EditorState {
 
     pub fn new(window_size: Size) -> Self {
-        let screen_buffer_size = window_size.width*window_size.height;
+        let screen_buffer_size = window_size.area();
         let buffer_size = screen_buffer_size*10;
         let n_pieces = buffer_size/2;
 
