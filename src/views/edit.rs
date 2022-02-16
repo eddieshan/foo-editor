@@ -9,9 +9,9 @@ use super::{plain_text, gutter, status_bar};
 
 pub fn render(buffer: &mut impl Write, state: &EditorState) -> Result<(), EditorError> {
     let n_lines = navigation::n_lines(&state.text);
-    let cursor = navigation::cursor(&state.text[0..state.pos]);
+    let cursor = navigation::cursor(&state.text[0..state.cursor.pos]);
 
-    let text = state.clipped_text();
+    let text = state.cursor.clip(&state.text, state.window_size.height - 1);
     if text.len() > 0 {
         plain_text::render(buffer, text)?;
     }
