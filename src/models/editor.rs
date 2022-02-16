@@ -1,3 +1,4 @@
+use std::ops::Range;
 use crate::core::geometry::Size;
 use crate::buffers::piece_chain::PieceChain;
 use crate::core::utils::AbsPos;
@@ -14,7 +15,7 @@ impl Region {
         if new_pos > self.start {
             let n_lines = navigation::n_lines(&text[self.start..new_pos]);
             if n_lines > page_size {
-                self.start = text.rapos_n(LF, page_size - 1, new_pos).unwrap_or(0);
+                self.start = text.rapos_n(LF, page_size - 1, new_pos).map_or(0, |v| v + 1);
             }
         } else if new_pos < self.start {
             self.start = text.rapos(LF, new_pos).unwrap_or(0);
@@ -23,9 +24,13 @@ impl Region {
         self.pos = new_pos;
     }
 
-    pub fn clip<'a>(&self, text: &'a [u8], page_size: usize) -> &'a [u8] {
+    pub fn clip<'a>(&self, text: &'a [u8], page_size: usize) -> (Range<usize>, &'a [u8]) {
         let end = text.apos_n(LF, page_size, self.start).unwrap_or(text.len());
-        &text[self.start..end]
+        let lines_range = Range {
+            start: navigation::n_lines(&text[0..self.start]),
+            end: navigation::n_lines(&text[0..end]) + 1
+        };
+        (lines_range, &text[self.start..end])
     }
 }
 
@@ -33,7 +38,7 @@ pub struct EditorState {
     pub window_size: Size,
     buffer: PieceChain,
     pub text: Vec<u8>,
-    pub cursor: Region
+    pub region: Region
 }
 
 impl EditorState {
@@ -47,7 +52,7 @@ impl EditorState {
             window_size: window_size,
             buffer: PieceChain::with_capacity(buffer_size, n_pieces),
             text: Vec::with_capacity(screen_buffer_size),
-            cursor: Region { start: 0, pos: 0 }
+            region: Region { start: 0, pos: 0 }
         }
     }
 
@@ -59,15 +64,15 @@ impl EditorState {
     }
 
     pub fn insert(&mut self, val: u8) {
-        self.buffer.insert(val, self.cursor.pos);
+        self.buffer.insert(val, self.region.pos);
         self.refresh();
-        self.cursor.update(&self.text, self.cursor.pos + 1, self.window_size.height);
+        self.region.update(&self.text, self.region.pos + 1, self.window_size.height);
     }
 
     pub fn erase(&mut self) {
-        self.buffer.erase(self.cursor.pos);
+        self.buffer.erase(self.region.pos);
         self.refresh();
-        self.cursor.update(&self.text, self.cursor.pos, self.window_size.height);
+        self.region.update(&self.text, self.region.pos, self.window_size.height);
     }
 
     pub fn go_erase(&mut self, mv: fn(&[u8], usize) -> usize) {
@@ -76,7 +81,7 @@ impl EditorState {
     }
 
     pub fn go_to(&mut self, mv: fn(&[u8], usize) -> usize) {
-        let new_pos = mv(&self.text, self.cursor.pos);
-        self.cursor.update(&self.text, new_pos, self.window_size.height);
+        let new_pos = mv(&self.text, self.region.pos);
+        self.region.update(&self.text, new_pos, self.window_size.height);
     }
 }
