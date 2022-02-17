@@ -1,6 +1,6 @@
 use std::ptr;
 use std::convert::TryFrom;
-
+use crate::core:: {errors::*, geometry::*};
 use crate::{term::common::*, term::win::bindings::*};
 
 // This is annoying. The trait should be just From instead of TryFrom.
@@ -33,7 +33,7 @@ impl Term for WinTerm {
         set_mode(self.std_out.0, self.std_out.1)
     }
 
-    fn info(&self) -> Result<TermInfo, TermError> {
+    fn window_size(&self) -> Result<Size, TermError> {
         let mut buffer_info = CONSOLE_SCREEN_BUFFER_INFO  { 
             dwSize: COORD { X: 0, Y: 0 },
             dwCursorPosition: COORD { X: 0, Y: 0 },
@@ -49,7 +49,7 @@ impl Term for WinTerm {
         }
 
         match (Size::try_from(buffer_info.dwSize), Size::try_from(buffer_info.dwMaximumWindowSize)) {
-            (Ok(buffer_size), Ok(window_size)) => Ok(TermInfo { buffer_size: buffer_size, screen_size: window_size }),
+            (Ok(_), Ok(window_size)) => Ok(window_size),
             _ => Err(TermError::InvalidTermAttributes)
         }
     }

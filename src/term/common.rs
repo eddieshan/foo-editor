@@ -3,12 +3,7 @@ use crate::core:: {
     geometry::Size
 };
 
-pub struct TermInfo {
-    pub buffer_size: Size,
-    pub screen_size: Size
-}
-
 pub trait Term {
     fn restore(&self) -> Result<(), TermError>;
-    fn info(&self) -> Result<TermInfo, TermError>;
+    fn window_size(&self) -> Result<Size, TermError>;
 }

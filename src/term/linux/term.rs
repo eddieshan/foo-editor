@@ -78,22 +78,11 @@ fn get_window_size() -> Result<Size, TermError> {
 
 impl Term for LinuxTerm {
     fn restore(&self) -> Result<(), TermError> {
-        set_term_attr(&self.state)?;
-        Ok(())
+        set_term_attr(&self.state)
     }
 
-    fn info(&self) -> Result<TermInfo, TermError> {
-
-        let window_size = get_window_size()?;
-
-        // TODO: for now, for Linux, it is assumed that buffer size will be the 
-        // same as window size. In Windows they are different values, retrieved
-        // with separate sys calls. Consider simplifying this and use only the 
-        // window size.
-        Ok(TermInfo {
-            buffer_size: window_size.clone(),
-            screen_size: window_size.clone()
-        })
+    fn window_size(&self) -> Result<Size, TermError> {
+        get_window_size()
     }
 }
 
@@ -130,7 +119,6 @@ fn set_term_attr(state: &termios) -> Result<(), TermError> {
 }
 
 pub fn os_configure() -> Result<impl Term, TermError> {
-
     let initial_term_state = get_term_attr()?;
     let raw_term_state = termios::raw_from(&initial_term_state);
     set_term_attr(&raw_term_state)?;

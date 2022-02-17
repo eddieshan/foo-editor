@@ -1,2 +1,2 @@
 pub mod keys;
-pub mod navigation;
+pub mod nav;

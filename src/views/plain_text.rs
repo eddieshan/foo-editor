@@ -11,9 +11,9 @@ pub fn render(buffer: &mut impl Write, text: &[u8]) -> Result<(), EditorError> {
     buffer.pos(0, col)?;
 
     let mut last_cr = 0;
-    let last = text.len() - 1;
+    let end = text.len();
 
-    for i in 0..last {
+    for i in 0..end {
         if text[i] == keys::LF {
             buffer.write(&text[last_cr..i])?;
             buffer.write(settings::LF)?;
@@ -21,7 +21,7 @@ pub fn render(buffer: &mut impl Write, text: &[u8]) -> Result<(), EditorError> {
         }
     }
 
-    buffer.write(&text[last_cr..=last])?;
+    buffer.write(&text[last_cr..end])?;
 
     Ok(())
 }
