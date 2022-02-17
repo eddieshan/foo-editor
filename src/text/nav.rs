@@ -2,19 +2,25 @@ use crate::core::collections::*;
 use crate::core::geometry::*;
 use crate::text::keys::*;
 
-pub fn cursor(text: &[u8]) -> Position {
-    let mut cursor = Position { x: 1, y: 1 };
+pub trait Nav {
+    fn last_pos(&self) -> Position;
+}
 
-    for &v in text {
-        if v == LF {
-            cursor.y += 1;
-            cursor.x = 1;
-        } else {
-            cursor.x += 1;
+impl Nav for [u8] {
+    fn last_pos(&self) -> Position {
+        let mut last_pos = Position { x: 1, y: 1 };
+
+        for &v in self {
+            if v == LF {
+                last_pos.y += 1;
+                last_pos.x = 1;
+            } else {
+                last_pos.x += 1;
+            }
         }
-    };
-
-    cursor
+    
+        last_pos
+    }
 }
 
 pub fn right(text: &[u8], pos: usize) -> usize {

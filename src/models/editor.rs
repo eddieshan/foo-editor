@@ -1,12 +1,23 @@
 use std::ops::Range;
-use crate::core::geometry::Size;
+use crate::core::geometry::*;
 use crate::buffers::piece_chain::PieceChain;
 use crate::core::collections::Search;
-use crate::text::keys::*;
+use crate::text::{keys::*, nav::*};
 
 pub struct Region {
     pub start: usize,
     pub pos: usize
+}
+
+pub struct Cursor {
+    pub abs: Position,
+    pub rel: Position
+}
+
+pub struct TextLayout<'a> {
+    pub text: &'a [u8],
+    pub cursor: Cursor,
+    pub lines_range: Range<usize>
 }
 
 impl Region {
@@ -78,5 +89,24 @@ impl EditorState {
     pub fn go_to(&mut self, mv: fn(&[u8], usize) -> usize) {
         let new_pos = mv(&self.text, self.region.pos);
         self.region.update(&self.text, new_pos, self.window_size.height);
+    }
+
+    pub fn layout(&self, page_size: usize) -> TextLayout {
+        let end = self.text
+            .as_slice()
+            .apos_n(LF, page_size, self.region.start)
+            .unwrap_or(self.text.len());
+
+        let start_line = (&self.text[0..self.region.start]).count(LF) + 1;
+        let end_line = start_line + (&self.text[self.region.start..end]).count(LF) + 1;
+
+        TextLayout {
+            text: &self.text[self.region.start..end],
+            cursor: Cursor {
+                abs: (&self.text[..self.region.pos]).last_pos(),
+                rel: (&self.text[self.region.start..self.region.pos]).last_pos()
+            },
+            lines_range: start_line..end_line            
+        }
     }
 }
