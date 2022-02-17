@@ -40,9 +40,9 @@ pub fn left(_: &[u8], pos: usize) -> usize {
 }
 
 pub fn down(text: &[u8], pos: usize) -> usize {
-    if let Some(eol) = text.apos(LF, pos) {
-        let eol_below = text.apos(LF, eol + 1).unwrap_or(text.len());
-        let offset = text.rapos(LF, pos).map_or(pos + 1, |eol_above| pos - eol_above);
+    if let Some(eol) = text.pos(LF, pos) {
+        let eol_below = text.pos(LF, eol + 1).unwrap_or(text.len());
+        let offset = text.rpos(LF, pos).map_or(pos + 1, |eol_above| pos - eol_above);
         let new_pos = eol + offset;
         
         std::cmp::min(new_pos, eol_below)
@@ -52,9 +52,9 @@ pub fn down(text: &[u8], pos: usize) -> usize {
 }
 
 pub fn up(text: &[u8], pos: usize) -> usize {
-    if let Some(eol_above) = text.rapos(LF, pos) {
+    if let Some(eol_above) = text.rpos(LF, pos) {
         let offset = pos - eol_above;
-        let new_pos = text.rapos(LF, eol_above).map_or(offset - 1, |sol_above| offset + sol_above);
+        let new_pos = text.rpos(LF, eol_above).map_or(offset - 1, |sol_above| offset + sol_above);
 
         std::cmp::min(new_pos, eol_above)
     } else {
@@ -63,9 +63,9 @@ pub fn up(text: &[u8], pos: usize) -> usize {
 }
 
 pub fn start(text: &[u8], pos: usize) -> usize {
-    text.rapos(LF, pos).map_or(0, |i| i + 1)
+    text.rpos(LF, pos).map_or(0, |i| i + 1)
 }
 
 pub fn end(text: &[u8], pos: usize) -> usize {
-    text.apos(LF, pos).unwrap_or(text.len())
+    text.pos(LF, pos).unwrap_or(text.len())
 }

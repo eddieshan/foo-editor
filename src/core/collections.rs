@@ -4,14 +4,14 @@
 // the subrange, instead of absolute positions.
 pub trait Search<T> {
     // Absolute position of item with value @val, starting from the left at @from.
-    fn apos(&self, val: T, from: usize) -> Option<usize>;
+    fn pos(&self, val: T, from: usize) -> Option<usize>;
     // Absolute position of item with value @val, starting from the right at @from.
-    fn rapos(&self, val: T, from: usize) -> Option<usize>;
+    fn rpos(&self, val: T, from: usize) -> Option<usize>;
 
     // Absolute position of nth item with value @val, starting from the left at @from.
-    fn apos_n(&self, val: T, n: usize, from: usize) -> Option<usize>;
+    fn pos_n(&self, val: T, n: usize, from: usize) -> Option<usize>;
     // Absolute position of nth item with value @val, starting from the right at @from.
-    fn rapos_n(&self, val: T, n: usize, from: usize) -> Option<usize>;
+    fn rpos_n(&self, val: T, n: usize, from: usize) -> Option<usize>;
 
     fn at_least(&self, val: T, n: usize) -> bool;
 
@@ -24,7 +24,7 @@ pub trait Search<T> {
 // Search does not fit with the Iter API so it might have to be changed. 
 // For the moment though the slice impl is enough.
 impl<T: std::cmp::PartialEq> Search<T> for &[T] {
-    fn apos(&self, val: T, from: usize) -> Option<usize> {
+    fn pos(&self, val: T, from: usize) -> Option<usize> {
         for i in from..self.len() {
             if self[i] == val {
                 return Some(i)
@@ -33,7 +33,7 @@ impl<T: std::cmp::PartialEq> Search<T> for &[T] {
         None
     }
 
-    fn rapos(&self, val: T, from: usize) -> Option<usize> {
+    fn rpos(&self, val: T, from: usize) -> Option<usize> {
         for i in (0..from).rev() {
             if self[i] == val {
                 return Some(i)
@@ -42,7 +42,7 @@ impl<T: std::cmp::PartialEq> Search<T> for &[T] {
         None
     }
 
-    fn apos_n(&self, val: T, n: usize, from: usize) -> Option<usize> {
+    fn pos_n(&self, val: T, n: usize, from: usize) -> Option<usize> {
         let mut count = n;
         for i in from..self.len() {
             if self[i] == val {
@@ -55,7 +55,7 @@ impl<T: std::cmp::PartialEq> Search<T> for &[T] {
         None
     }
 
-    fn rapos_n(&self, val: T, n: usize, from: usize) -> Option<usize> {
+    fn rpos_n(&self, val: T, n: usize, from: usize) -> Option<usize> {
         let mut count = n;
         for i in (0..from).rev() {
             if self[i] == val {

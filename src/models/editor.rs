@@ -23,16 +23,16 @@ pub struct TextLayout<'a> {
 impl Region {
     pub fn update(&mut self, text: &[u8], new_pos: usize, page_size: usize) {
         if new_pos > self.start && (&text[self.start..new_pos]).at_least(LF, page_size + 1) {
-            self.start = text.rapos_n(LF, page_size - 1, new_pos).map_or(0, |v| v + 1);
+            self.start = text.rpos_n(LF, page_size - 1, new_pos).map_or(0, |v| v + 1);
         } else if new_pos < self.start {
-            self.start = text.rapos(LF, new_pos).unwrap_or(0);
+            self.start = text.rpos(LF, new_pos).unwrap_or(0);
         }
 
         self.pos = new_pos;
     }
     
     pub fn clip<'a>(&self, text: &'a [u8], page_size: usize) -> (Range<usize>, &'a [u8]) {
-        let end = text.apos_n(LF, page_size, self.start).unwrap_or(text.len());
+        let end = text.pos_n(LF, page_size, self.start).unwrap_or(text.len());
         let start_line = (&text[0..self.start]).count(LF) + 1;
         let end_line = start_line + (&text[self.start..end]).count(LF) + 1;
         
@@ -94,7 +94,7 @@ impl EditorState {
     pub fn layout(&self, page_size: usize) -> TextLayout {
         let end = self.text
             .as_slice()
-            .apos_n(LF, page_size, self.region.start)
+            .pos_n(LF, page_size, self.region.start)
             .unwrap_or(self.text.len());
 
         let start_line = (&self.text[0..self.region.start]).count(LF) + 1;
