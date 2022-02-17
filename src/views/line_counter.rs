@@ -7,16 +7,16 @@ use crate::config::theme;
 
 pub fn render(buffer: &mut impl Write, ln: usize, lines_range: Range<usize>) -> Result<()> {
     buffer.write(vt100::HOME)?;
-    buffer.write(theme::GUTTER_DEFAULT)?;
+    buffer.write(theme::LINE_DEFAULT)?;
 
     let mut line_number = [b' '; 3];
 
     for i in lines_range {
         convert::to_slice_3(i, &mut line_number)?;
         if i == ln {
-            buffer.write(theme::GUTTER_HIGHLIGHT)?;
+            buffer.write(theme::LINE_HIGHLIGHT)?;
             buffer.write(&line_number)?;
-            buffer.write(theme::GUTTER_DEFAULT)?;
+            buffer.write(theme::LINE_DEFAULT)?;
         } else {
             buffer.write(&line_number)?;
         }            

@@ -5,7 +5,7 @@ use crate::term::vt100::*;
 use crate::text::nav;
 use crate::config::settings;
 use crate::models::editor::EditorState;
-use super::{plain_text, gutter, status_bar};
+use super::{plain_text, line_counter, status_bar};
 
 pub fn render(buffer: &mut impl Write, state: &EditorState) -> Result<(), EditorError> {
     let absolute_pos = nav::cursor(&state.text[..state.region.pos]);
@@ -15,7 +15,7 @@ pub fn render(buffer: &mut impl Write, state: &EditorState) -> Result<(), Editor
         plain_text::render(buffer, text)?;
     }
 
-    gutter::render(buffer, absolute_pos.y, lines_range)?;
+    line_counter::render(buffer, absolute_pos.y, lines_range)?;
     status_bar::render(buffer, &absolute_pos, &state.window_size)?;
 
     let relative_pos = nav::cursor(&state.text[state.region.start..state.region.pos]);
