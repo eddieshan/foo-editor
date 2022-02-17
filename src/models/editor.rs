@@ -30,14 +30,6 @@ impl Region {
 
         self.pos = new_pos;
     }
-    
-    pub fn clip<'a>(&self, text: &'a [u8], page_size: usize) -> (Range<usize>, &'a [u8]) {
-        let end = text.pos_n(LF, page_size, self.start).unwrap_or(text.len());
-        let start_line = (&text[0..self.start]).count(LF) + 1;
-        let end_line = start_line + (&text[self.start..end]).count(LF) + 1;
-        
-        (start_line..end_line, &text[self.start..end])
-    }
 }
 
 pub struct EditorState {
