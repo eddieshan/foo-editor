@@ -1,7 +1,7 @@
 use std::ops::Range;
 use crate::core::geometry::Size;
 use crate::buffers::piece_chain::PieceChain;
-use crate::core::utils::AbsPos;
+use crate::core::collections::Search;
 use crate::text::keys::*;
 use crate::text::nav;
 
@@ -12,18 +12,15 @@ pub struct Region {
 
 impl Region {
     pub fn update(&mut self, text: &[u8], new_pos: usize, page_size: usize) {
-        if new_pos > self.start {
-            let n_lines = nav::n_lines(&text[self.start..new_pos]);
-            if n_lines > page_size {
-                self.start = text.rapos_n(LF, page_size - 1, new_pos).map_or(0, |v| v + 1);
-            }
+        if new_pos > self.start && (&text[self.start..new_pos]).at_least(LF, page_size + 1) {
+            self.start = text.rapos_n(LF, page_size - 1, new_pos).map_or(0, |v| v + 1);
         } else if new_pos < self.start {
             self.start = text.rapos(LF, new_pos).unwrap_or(0);
         }
 
         self.pos = new_pos;
     }
-
+    
     pub fn clip<'a>(&self, text: &'a [u8], page_size: usize) -> (Range<usize>, &'a [u8]) {
         let end = text.apos_n(LF, page_size, self.start).unwrap_or(text.len());
         let lines_range = Range {

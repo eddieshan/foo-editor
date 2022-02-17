@@ -1,8 +1,8 @@
-// AbsPos: trait with methods to find absolute position of items in an iterator.
+// Search: trait with methods to find absolute position of items in an iterator.
 // It is meant to solve the limitation when calling Iter::position and 
 // Iter::rposition on a subrange of a slice, which return indices relative to 
 // the subrange, instead of absolute positions.
-pub trait AbsPos<T> {
+pub trait Search<T> {
     // Absolute position of item with value @val, starting from the left at @from.
     fn apos(&self, val: T, from: usize) -> Option<usize>;
     // Absolute position of item with value @val, starting from the right at @from.
@@ -11,15 +11,17 @@ pub trait AbsPos<T> {
     // Absolute position of nth item with value @val, starting from the left at @from.
     fn apos_n(&self, val: T, n: usize, from: usize) -> Option<usize>;
     // Absolute position of nth item with value @val, starting from the right at @from.
-    fn rapos_n(&self, val: T, n: usize, from: usize) -> Option<usize>;    
+    fn rapos_n(&self, val: T, n: usize, from: usize) -> Option<usize>;
+
+    fn at_least(&self, val: T, n: usize) -> bool;
 }
 
-// TODO: AbsPos implementation for slices.
+// TODO: Search implementation for slices.
 // It can be generalized to Iter<T> but I need more time to evaluate the various
 // possible implementations. At first sight it looks like the current definition of 
-// AbsPos does not fit with the Iter API so it might have to be changed. 
+// Search does not fit with the Iter API so it might have to be changed. 
 // For the moment though the slice impl is enough.
-impl<T: std::cmp::PartialEq> AbsPos<T> for &[T] {
+impl<T: std::cmp::PartialEq> Search<T> for &[T] {
     fn apos(&self, val: T, from: usize) -> Option<usize> {
         for i in from..self.len() {
             if self[i] == val {
@@ -45,7 +47,7 @@ impl<T: std::cmp::PartialEq> AbsPos<T> for &[T] {
                 count -= 1;
                 if count == 0 {
                     return Some(i);
-                }                
+                }
             }
         }
         None
@@ -58,9 +60,22 @@ impl<T: std::cmp::PartialEq> AbsPos<T> for &[T] {
                 count -= 1;
                 if count == 0 {
                     return Some(i);
-                }                
+                }
             }
         }
         None
     }    
+
+    fn at_least(&self, val: T, n: usize) -> bool {
+        let mut count = n;
+        for i in 0..self.len() {
+            if self[i] == val {
+                count -= 1;
+                if count == 0 {
+                    return true;
+                }
+            }
+        }
+        false
+    }
 }

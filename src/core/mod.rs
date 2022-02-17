@@ -1,4 +1,4 @@
-pub mod utils;
+pub mod collections;
 pub mod errors;
 pub mod geometry;
 pub mod convert;
