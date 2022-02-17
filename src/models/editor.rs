@@ -35,8 +35,8 @@ impl Region {
 pub struct EditorState {
     pub window_size: Size,
     buffer: PieceChain,
-    pub text: Vec<u8>,
-    pub region: Region
+    text: Vec<u8>,
+    region: Region
 }
 
 impl EditorState {
