@@ -4,11 +4,6 @@ use crate::buffers::piece_chain::PieceChain;
 use crate::core::collections::Search;
 use crate::text::{keys::*, nav::*};
 
-pub struct Region {
-    pub start: usize,
-    pub pos: usize
-}
-
 pub struct Cursor {
     pub abs: Position,
     pub rel: Position
@@ -18,6 +13,11 @@ pub struct TextLayout<'a> {
     pub text: &'a [u8],
     pub cursor: Cursor,
     pub lines_range: Range<usize>
+}
+
+struct Region {
+    pub start: usize,
+    pub pos: usize
 }
 
 impl Region {
