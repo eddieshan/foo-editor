@@ -89,11 +89,12 @@ impl EditorState {
             .pos_n(LF, page_size, self.region.start)
             .unwrap_or(self.text.len());
 
-        let start_line = (&self.text[0..self.region.start]).count(LF) + 1;
-        let end_line = start_line + (&self.text[self.region.start..end]).count(LF) + 1;
+        let clipped_text = &self.text[self.region.start..end];
+        let start_line = (&self.text[..self.region.start]).count(LF) + 1;
+        let end_line = start_line + clipped_text.count(LF) + 1;
 
         TextLayout {
-            text: &self.text[self.region.start..end],
+            text: clipped_text,
             cursor: Cursor {
                 abs: (&self.text[..self.region.pos]).last_pos(),
                 rel: (&self.text[self.region.start..self.region.pos]).last_pos()
