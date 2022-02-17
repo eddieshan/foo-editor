@@ -3,7 +3,7 @@ use crate::core::geometry::Size;
 use crate::buffers::piece_chain::PieceChain;
 use crate::core::utils::AbsPos;
 use crate::text::keys::*;
-use crate::text::navigation;
+use crate::text::nav;
 
 pub struct Region {
     pub start: usize,
@@ -13,7 +13,7 @@ pub struct Region {
 impl Region {
     pub fn update(&mut self, text: &[u8], new_pos: usize, page_size: usize) {
         if new_pos > self.start {
-            let n_lines = navigation::n_lines(&text[self.start..new_pos]);
+            let n_lines = nav::n_lines(&text[self.start..new_pos]);
             if n_lines > page_size {
                 self.start = text.rapos_n(LF, page_size - 1, new_pos).map_or(0, |v| v + 1);
             }
@@ -27,8 +27,8 @@ impl Region {
     pub fn clip<'a>(&self, text: &'a [u8], page_size: usize) -> (Range<usize>, &'a [u8]) {
         let end = text.apos_n(LF, page_size, self.start).unwrap_or(text.len());
         let lines_range = Range {
-            start: navigation::n_lines(&text[0..self.start]),
-            end: navigation::n_lines(&text[0..end]) + 1
+            start: nav::n_lines(&text[0..self.start]),
+            end: nav::n_lines(&text[0..end]) + 1
         };
         (lines_range, &text[self.start..end])
     }
