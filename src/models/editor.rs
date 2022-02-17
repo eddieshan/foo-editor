@@ -30,6 +30,23 @@ impl Region {
 
         self.pos = new_pos;
     }
+
+    pub fn clip<'a>(&self, text: &'a [u8], page_size: usize) -> &'a [u8] {
+        let end = text.pos_n(LF, page_size, self.start).unwrap_or(text.len());
+        &text[self.start..end]
+    }
+
+    pub fn before<'a>(&self, text: &'a [u8]) -> &'a [u8] {
+        &text[..self.start]
+    }
+
+    pub fn abs<'a>(&self, text: &'a [u8]) -> &'a [u8] {
+        &text[..self.pos]
+    }
+
+    pub fn rel<'a>(&self, text: &'a [u8]) -> &'a [u8] {
+        &text[self.start..self.pos]
+    }    
 }
 
 pub struct EditorState {
@@ -84,20 +101,18 @@ impl EditorState {
     }
 
     pub fn layout(&self, page_size: usize) -> TextLayout {
-        let end = self.text
-            .as_slice()
-            .pos_n(LF, page_size, self.region.start)
-            .unwrap_or(self.text.len());
-
-        let clipped_text = &self.text[self.region.start..end];
-        let start_line = (&self.text[..self.region.start]).count(LF) + 1;
+        let clipped_text = self.region.clip(&self.text, page_size);
+        let start_line = self.region.before(&self.text).count(LF) + 1;
         let end_line = start_line + clipped_text.count(LF) + 1;
 
+        // TODO: calling region.abs and region.rel is inefficient since they will
+        // pass twice over the range region.start..region.pos. This needs to be 
+        // replaced by an incremental calculation.
         TextLayout {
             text: clipped_text,
             cursor: Cursor {
-                abs: (&self.text[..self.region.pos]).last_pos(),
-                rel: (&self.text[self.region.start..self.region.pos]).last_pos()
+                abs: self.region.abs(&self.text).last_pos(),
+                rel: self.region.rel(&self.text).last_pos()
             },
             lines_range: start_line..end_line            
         }
