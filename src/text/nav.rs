@@ -17,10 +17,6 @@ pub fn cursor(text: &[u8]) -> Position {
     cursor
 }
 
-pub fn n_lines(text: &[u8]) -> usize {
-    text.iter().filter(|&&v| v == LF).count() + 1
-}
-
 pub fn right(text: &[u8], pos: usize) -> usize {
     if pos < text.len() {
         pos + 1

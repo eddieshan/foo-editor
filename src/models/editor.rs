@@ -3,7 +3,6 @@ use crate::core::geometry::Size;
 use crate::buffers::piece_chain::PieceChain;
 use crate::core::collections::Search;
 use crate::text::keys::*;
-use crate::text::nav;
 
 pub struct Region {
     pub start: usize,
@@ -23,11 +22,10 @@ impl Region {
     
     pub fn clip<'a>(&self, text: &'a [u8], page_size: usize) -> (Range<usize>, &'a [u8]) {
         let end = text.apos_n(LF, page_size, self.start).unwrap_or(text.len());
-        let lines_range = Range {
-            start: nav::n_lines(&text[0..self.start]),
-            end: nav::n_lines(&text[0..end]) + 1
-        };
-        (lines_range, &text[self.start..end])
+        let start_line = (&text[0..self.start]).count(LF) + 1;
+        let end_line = start_line + (&text[self.start..end]).count(LF) + 1;
+        
+        (start_line..end_line, &text[self.start..end])
     }
 }
 

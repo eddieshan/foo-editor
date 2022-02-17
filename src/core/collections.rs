@@ -14,6 +14,8 @@ pub trait Search<T> {
     fn rapos_n(&self, val: T, n: usize, from: usize) -> Option<usize>;
 
     fn at_least(&self, val: T, n: usize) -> bool;
+
+    fn count(&self, val: T) -> usize;    
 }
 
 // TODO: Search implementation for slices.
@@ -78,4 +80,14 @@ impl<T: std::cmp::PartialEq> Search<T> for &[T] {
         }
         false
     }
+
+    fn count(&self, val: T) -> usize {
+        let mut count = 0;
+        for i in 0..self.len() {
+            if self[i] == val {
+                count += 1;
+            }
+        }
+        count
+    }    
 }
