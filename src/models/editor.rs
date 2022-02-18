@@ -50,7 +50,7 @@ impl Region {
 }
 
 pub struct EditorState {
-    pub window_size: Size,
+    pub window: Size,
     buffer: PieceChain,
     text: Vec<u8>,
     region: Region
@@ -58,13 +58,13 @@ pub struct EditorState {
 
 impl EditorState {
 
-    pub fn new(window_size: Size) -> Self {
-        let screen_buffer_size = window_size.area();
+    pub fn new(window: Size) -> Self {
+        let screen_buffer_size = window.area();
         let buffer_size = screen_buffer_size*10;
         let n_pieces = buffer_size/2;
 
         EditorState {
-            window_size: window_size,
+            window: window,
             buffer: PieceChain::with_capacity(buffer_size, n_pieces),
             text: Vec::with_capacity(screen_buffer_size),
             region: Region { start: 0, pos: 0 }
@@ -81,13 +81,13 @@ impl EditorState {
     pub fn insert(&mut self, val: u8) {
         self.buffer.insert(val, self.region.pos);
         self.refresh();
-        self.region.update(&self.text, self.region.pos + 1, self.window_size.height);
+        self.region.update(&self.text, self.region.pos + 1, self.window.height);
     }
 
     pub fn erase(&mut self) {
         self.buffer.erase(self.region.pos);
         self.refresh();
-        self.region.update(&self.text, self.region.pos, self.window_size.height);
+        self.region.update(&self.text, self.region.pos, self.window.height);
     }
 
     pub fn go_erase(&mut self, mv: fn(&[u8], usize) -> usize) {
@@ -97,7 +97,7 @@ impl EditorState {
 
     pub fn go_to(&mut self, mv: fn(&[u8], usize) -> usize) {
         let new_pos = mv(&self.text, self.region.pos);
-        self.region.update(&self.text, new_pos, self.window_size.height);
+        self.region.update(&self.text, new_pos, self.window.height);
     }
 
     pub fn layout(&self, page_size: usize) -> TextLayout {

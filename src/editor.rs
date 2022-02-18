@@ -25,7 +25,7 @@ pub fn run(term: &impl Term) -> Result<(), EditorError> {
     let mut stdout = io::stdout();
     let mut stdin = io::stdin();
 
-    let mut state = EditorState::new(term.window_size()?);
+    let mut state = EditorState::new(term.window()?);
 
     let mut action_result = ActionResult {
         view: views::edit::render,

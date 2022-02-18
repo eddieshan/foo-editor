@@ -5,5 +5,5 @@ use crate::core:: {
 
 pub trait Term {
     fn restore(&self) -> Result<(), TermError>;
-    fn window_size(&self) -> Result<Size, TermError>;
+    fn window(&self) -> Result<Size, TermError>;
 }
