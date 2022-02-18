@@ -8,8 +8,7 @@ pub fn render(buffer: &mut impl Write, cursor: &Position, window_size: &Size) ->
     convert::to_slice_3(cursor.x, &mut caption[0..3])?;
     convert::to_slice_3(cursor.y, &mut caption[4..7])?;
 
-    let last_col = window_size.width + 1;
-    let start_col = last_col - caption.len();
+    let start_col = window_size.width + 1 - caption.len();
 
     buffer.pos(window_size.height, start_col)?;
     buffer.write(&caption)?;
