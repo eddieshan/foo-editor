@@ -34,9 +34,7 @@ pub fn run(term: &impl Term) -> Result<(), EditorError> {
 
     render(&mut stdout, action_result.view, &state)?;
  
-    loop {
-        let key = stdin.read_key()?;
-
+    while let Ok(key) = stdin.read_key() {
         action_result = match key.code {
             keys::CTRL_Q => { break; },
             _            => (action_result.controller)(&key, &mut state)?
