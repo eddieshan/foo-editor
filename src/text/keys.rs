@@ -1,7 +1,7 @@
 use std::io::{Read, Result};
 
-pub const WHITESPACE: u8 = 32;
-pub const LF: u8 = 10;
+pub const ESC: u8 = 27;
+pub const LF: u8  = 10;
 
 pub const CTRL_Q: u32   = 0x11000000;
 pub const CR: u32       = 0x0d000000;
