@@ -15,7 +15,7 @@ pub struct TextLayout<'a> {
     pub lines_range: Range<usize>
 }
 
-struct Region {
+pub struct Region {
     pub start: usize,
     pub pos: usize
 }
@@ -31,29 +31,47 @@ impl Region {
         self.pos = new_pos;
     }
 
-    pub fn clip<'a>(&self, text: &'a [u8], page_size: usize) -> &'a [u8] {
+    fn clip<'a>(&self, text: &'a [u8], page_size: usize) -> &'a [u8] {
         let end = text.pos_n(LF, page_size, self.start).unwrap_or(text.len());
         &text[self.start..end]
     }
 
-    pub fn before<'a>(&self, text: &'a [u8]) -> &'a [u8] {
+    fn before<'a>(&self, text: &'a [u8]) -> &'a [u8] {
         &text[..self.start]
     }
 
-    pub fn abs<'a>(&self, text: &'a [u8]) -> &'a [u8] {
+    fn abs<'a>(&self, text: &'a [u8]) -> &'a [u8] {
         &text[..self.pos]
     }
 
-    pub fn rel<'a>(&self, text: &'a [u8]) -> &'a [u8] {
+    fn rel<'a>(&self, text: &'a [u8]) -> &'a [u8] {
         &text[self.start..self.pos]
+    }    
+
+    pub fn layout<'a>(&self, text:&'a [u8], page_size: usize) -> TextLayout<'a> {
+        let clipped_text = self.clip(text, page_size);
+        let start_line = self.before(text).count(LF) + 1;
+        let end_line = start_line + clipped_text.count(LF) + 1;
+
+        // TODO: calling region.abs and region.rel is inefficient since they will
+        // pass twice over the range region.start..region.pos. This needs to be 
+        // replaced by an incremental calculation.
+        TextLayout {
+            text: clipped_text,
+            cursor: Cursor {
+                abs: self.abs(text).last_pos(),
+                rel: self.rel(text).last_pos()
+            },
+            lines_range: start_line..end_line
+        }
     }    
 }
 
 pub struct EditorState {
     pub window: Size,
     buffer: PieceChain,
-    text: Vec<u8>,
-    region: Region
+    pub text: Vec<u8>,
+    pub region: Region
 }
 
 impl EditorState {
@@ -98,23 +116,5 @@ impl EditorState {
     pub fn go_to(&mut self, mv: fn(&[u8], usize) -> usize) {
         let new_pos = mv(&self.text, self.region.pos);
         self.region.update(&self.text, new_pos, self.window.height);
-    }
-
-    pub fn layout(&self, page_size: usize) -> TextLayout {
-        let clipped_text = self.region.clip(&self.text, page_size);
-        let start_line = self.region.before(&self.text).count(LF) + 1;
-        let end_line = start_line + clipped_text.count(LF) + 1;
-
-        // TODO: calling region.abs and region.rel is inefficient since they will
-        // pass twice over the range region.start..region.pos. This needs to be 
-        // replaced by an incremental calculation.
-        TextLayout {
-            text: clipped_text,
-            cursor: Cursor {
-                abs: self.region.abs(&self.text).last_pos(),
-                rel: self.region.rel(&self.text).last_pos()
-            },
-            lines_range: start_line..end_line            
-        }
     }
 }
