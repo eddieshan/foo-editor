@@ -23,7 +23,7 @@ pub trait Search<T> {
 // possible implementations. At first sight it looks like the current definition of 
 // Search does not fit with the Iter API so it might have to be changed. 
 // For the moment though the slice impl is enough.
-impl<T: std::cmp::PartialEq> Search<T> for &[T] {
+impl<T: std::cmp::PartialEq> Search<T> for [T] {
     fn pos(&self, val: T, from: usize) -> Option<usize> {
         for i in from..self.len() {
             if self[i] == val {

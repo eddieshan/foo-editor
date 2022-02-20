@@ -8,7 +8,7 @@ mod views;
 mod buffers;
 mod editor;
 
-mod models;
+mod state;
 mod controllers;
 
 use crate::core::errors;

@@ -33,7 +33,7 @@ impl Term for WinTerm {
         set_mode(self.std_out.0, self.std_out.1)
     }
 
-    fn window_size(&self) -> Result<Size, TermError> {
+    fn window(&self) -> Result<Size, TermError> {
         let mut buffer_info = CONSOLE_SCREEN_BUFFER_INFO  { 
             dwSize: COORD { X: 0, Y: 0 },
             dwCursorPosition: COORD { X: 0, Y: 0 },
@@ -49,7 +49,7 @@ impl Term for WinTerm {
         }
 
         match (Size::try_from(buffer_info.dwSize), Size::try_from(buffer_info.dwMaximumWindowSize)) {
-            (Ok(_), Ok(window_size)) => Ok(window_size),
+            (Ok(_), Ok(window)) => Ok(window),
             _ => Err(TermError::InvalidTermAttributes)
         }
     }

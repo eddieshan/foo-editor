@@ -81,7 +81,7 @@ impl Term for LinuxTerm {
         set_term_attr(&self.state)
     }
 
-    fn window_size(&self) -> Result<Size, TermError> {
+    fn window(&self) -> Result<Size, TermError> {
         get_window_size()
     }
 }
