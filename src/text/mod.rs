@@ -1,4 +1,4 @@
 pub mod keys;
 pub mod region;
-pub mod text;
+pub mod layout;
 pub mod nav;
