@@ -6,7 +6,7 @@ use crate::core::errors::*;
 use crate::text::{keys, keys::ReadKey};
 use crate::config::theme;
 use crate::term::{common::*, vt100};
-use crate::models::editor::*;
+use crate::state::app::*;
 use crate::config::settings::*;
 use crate::controllers::*;
 use crate::views;

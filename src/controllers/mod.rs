@@ -2,7 +2,7 @@ pub mod edit_controller;
 
 use std::io::Write;
 use crate::core::errors::EditorError;
-use crate::models::editor::*;
+use crate::state::app::*;
 use crate::config::settings::*;
 use crate::text::keys::Key;
 

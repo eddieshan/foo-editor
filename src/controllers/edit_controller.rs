@@ -2,7 +2,7 @@ use std::io;
 use crate::core::errors::*;
 
 use crate::text::{keys, nav, keys::Key};
-use crate::models::editor::AppState;
+use crate::state::app::AppState;
 use crate::views;
 use super::ActionResult;
 

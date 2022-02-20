@@ -4,7 +4,7 @@ use crate::core::errors::*;
 use crate::term::vt100::*;
 use crate::config::settings::*;
 use crate::text::layout::*;
-use crate::models::editor::AppState;
+use crate::state::app::AppState;
 use super::{plain_text, line_counter, status_bar};
 
 pub fn render(buffer: &mut impl Write, settings: &Settings, state: &AppState) -> Result<(), EditorError> {
