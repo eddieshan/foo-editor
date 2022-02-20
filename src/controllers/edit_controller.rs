@@ -26,7 +26,7 @@ pub fn edit<T: io::Write>(key: &Key, state: &mut AppState) -> Result<ActionResul
         }
     };
 
-    state.region.update(&state.text_area.text, state.text_area.pos);
+    state.region.update(&state.text_area.text() , state.text_area.pos());
 
     Ok(ActionResult {
         view: views::edit::render,

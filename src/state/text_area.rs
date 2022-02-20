@@ -3,8 +3,8 @@ use crate::buffers::piece_chain::PieceChain;
 
 pub struct TextArea {
     buffer: PieceChain,
-    pub pos: usize,
-    pub text: Vec<u8>
+    pos: usize,
+    text: Vec<u8>
 }
 
 impl TextArea {
@@ -19,6 +19,15 @@ impl TextArea {
             text: Vec::with_capacity(screen_buffer_size),
             pos: 0
         }
+    }
+
+
+    pub fn pos(&self) -> usize {
+        self.pos
+    }    
+
+    pub fn text<'a>(&'a self) -> &'a [u8] {
+        &self.text
     }
 
     fn refresh(&mut self) {
